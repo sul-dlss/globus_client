@@ -2,7 +2,7 @@
 
 require "globus/client"
 require "config"
-require 'webmock/rspec'
+require "webmock/rspec"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -15,5 +15,5 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  Config.load_and_set_settings('spec/fixtures/test_config.yml')
+  Config.load_and_set_settings("spec/fixtures/test_config.yml")
 end

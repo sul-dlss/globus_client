@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'faraday'
+require "faraday"
 
 module Globus
   class Client
@@ -16,12 +16,12 @@ module Globus
         # Transfer API connection
         Faraday.new(
           url: Settings.globus.transfer_url,
-          headers: { 'Authorization': "Bearer #{token}" }
+          headers: { Authorization: "Bearer #{token}" }
         )
       end
 
       def length
-        objects['total']
+        objects["total"]
       end
 
       private
