@@ -6,8 +6,6 @@ module Globus
   class Client
     # The namespace for the "login" command
     class Endpoint
-      ENDPOINT_ID = '34ea3e65-6831-479a-8da3-87f118e3fc2b'
-
       def initialize(token)
         @token = token
       end
@@ -17,16 +15,22 @@ module Globus
       def connection
         # Transfer API connection
         Faraday.new(
-          url: 'https://transfer.api.globusonline.org',
+          url: Settings.globus.transfer_url,
           headers: { 'Authorization': "Bearer #{token}" }
         )
       end
 
-      def list_stuff
+      def length
+        objects['total']
+      end
+
+      private
+
+      def objects
         # List files at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
-        ls_endpoint = "/v0.10/operation/endpoint/#{ENDPOINT_ID}/ls"
+        ls_endpoint = "/v0.10/operation/endpoint/#{Settings.globus.endpoint}/ls"
         ls_resp = connection.get(ls_endpoint)
-        ls_resp.body
+        JSON.parse(ls_resp.body)
       end
     end
   end

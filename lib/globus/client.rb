@@ -11,14 +11,13 @@ module Globus
 
   class Client
     def initialize(client_id, client_secret)
-      # @client_id = client_id
-      # @client_secret = client_secret
+      @client_id = client_id
+      @client_secret = client_secret
       @authenticator = Globus::Client::Authenticator.new(client_id, client_secret)
     end
 
-    attr_accessor :authenticator # :client_id, :client_secret, 
+    attr_accessor :authenticator, :client_id, :client_secret
 
-    # delegate :token, to: :authenticator
     def token
       @token ||= authenticator.token
     end
