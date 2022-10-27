@@ -6,3 +6,5 @@ module GlobusClient
   class Error < StandardError; end
   # Your code goes here...
 end
+
+require 'globus_client/authenticator'
