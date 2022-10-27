@@ -27,3 +27,10 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/globus_client.
+
+# TODO
+- Authenticate w/ client_id & secret -> return a token
+- Create folder(s) on the configured endpoint
+- Set access rights on the created folders
+- Update access rights once files are transfered
+- Transfer (download) files
