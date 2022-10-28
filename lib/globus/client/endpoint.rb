@@ -20,6 +20,7 @@ module Globus
         )
       end
 
+      # This is a temporary method to show parsing of data returned.
       def length
         objects["total"]
       end

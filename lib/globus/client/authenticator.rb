@@ -27,7 +27,7 @@ module Globus
         )
 
         response = conn.post("/v2/oauth2/token", form_data)
-        puts response.body
+
         JSON.parse(response.body)["access_token"]
       end
     end
