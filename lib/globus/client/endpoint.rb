@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "faraday"
+require 'faraday'
 
 module Globus
   class Client
@@ -22,7 +22,7 @@ module Globus
 
       # This is a temporary method to show parsing of data returned.
       def length
-        objects["total"]
+        objects['total']
       end
 
       private

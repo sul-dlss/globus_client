@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "client/version"
-require "active_support/core_ext/module/delegation"
-require "globus/client/authenticator"
-require "globus/client/endpoint"
+require_relative 'client/version'
+require 'active_support/core_ext/module/delegation'
+require 'globus/client/authenticator'
+require 'globus/client/endpoint'
 
 module Globus
   class Error < StandardError; end
