@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
 RSpec.describe Globus::Client::Endpoint do
-  context "with a valid token" do
+  context 'with a valid token' do
     let(:client_id) { Settings.globus.client_id }
     let(:client_secret) { Settings.globus.client_secret }
     let(:globus_client) { Globus::Client.new(client_id, client_secret) }
     let(:endpoint) { described_class.new(globus_client.token) }
     let(:token_response) do
       {
-        access_token: "a_long_silly_token",
-        scope: "urn:globus:auth:scope:transfer.api.globus.org:all",
+        access_token: 'a_long_silly_token',
+        scope: 'urn:globus:auth:scope:transfer.api.globus.org:all',
         expires_in: 172_800,
-        token_type: "Bearer",
-        resource_server: "transfer.api.globus.org",
+        token_type: 'Bearer',
+        resource_server: 'transfer.api.globus.org',
         other_tokens: []
       }
     end
@@ -20,26 +20,26 @@ RSpec.describe Globus::Client::Endpoint do
       {
         DATA: [
           {
-            DATA_TYPE: "file",
-            group: "globus",
-            last_modified: "2022-10-20 20:09:40+00:00",
+            DATA_TYPE: 'file',
+            group: 'globus',
+            last_modified: '2022-10-20 20:09:40+00:00',
             link_group: nil,
             link_last_modified: nil,
             link_size: nil,
             link_target: nil,
             link_user: nil,
-            name: "read-test",
-            permissions: "0755",
+            name: 'read-test',
+            permissions: '0755',
             size: 3,
-            type: "dir",
-            user: "globus"
+            type: 'dir',
+            user: 'globus'
           }
         ],
-        DATA_TYPE: "file_list",
-        absolute_path: "/",
+        DATA_TYPE: 'file_list',
+        absolute_path: '/',
         endpoint: "#{Settings.globus.endpoint}",
         length: 1,
-        path: "/~/",
+        path: '/~/',
         rename_supported: true,
         symlink_supported: false,
         total: 1
@@ -54,7 +54,7 @@ RSpec.describe Globus::Client::Endpoint do
         .to_return(status: 200, body: list_response.to_json)
     end
 
-    it "#list_stuff" do
+    it '#list_stuff' do
       expect(endpoint.length).to eq 1
     end
   end
