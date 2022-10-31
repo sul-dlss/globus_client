@@ -1,3 +1,8 @@
+[![Gem Version](https://badge.fury.io/rb/globus_client.svg)](https://badge.fury.io/rb/globus_client)
+[![CircleCI](https://circleci.com/gh/sul-dlss-labs/globus_client.svg?style=svg)](https://circleci.com/gh/sul-dlss-labs/globus_client)
+[![Code Climate](https://codeclimate.com/github/sul-dlss-labs/globus_client/badges/gpa.svg)](https://codeclimate.com/github/sul-dlss-labs/globus_client)
+[![Code Climate Test Coverage](https://codeclimate.com/github/sul-dlss-labs/globlus_client/badges/coverage.svg)](https://codeclimate.com/github/sul-dlss-labs/globus_client/coverage)
+
 # GlobusClient
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/globus_client`. To experiment with that code, run `bin/console` for an interactive prompt.
