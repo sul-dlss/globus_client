@@ -79,13 +79,13 @@ RSpec.describe Globus::Client::Identity do
     # Example from https://docs.globus.org/api/search/errors/
     let(:identity_response) do
       {
-        "code": "AccessForbidden.NeedsOwner",
-        "message": "The operation you have requested requires \"Owner\" rights",
-        "status": 403,
-        "error_data": [
+        'code': 'AccessForbidden.NeedsOwner',
+        'message': 'The operation you have requested requires "Owner" rights',
+        'status': 403,
+        'error_data': [
           {
-            "code": "AccessForbidden.NeedsOwner",
-            "message": "You are not permitted to FOO a BAR which you do not own"
+            'code': 'AccessForbidden.NeedsOwner',
+            'message': 'You are not permitted to FOO a BAR which you do not own'
           }
         ]
       }

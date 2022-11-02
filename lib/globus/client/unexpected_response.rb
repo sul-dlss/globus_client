@@ -36,7 +36,9 @@ module Globus
         when 404
           raise ResourceNotFound, 'Resource does not exist or is missing.'
         when 409
-          raise ConflictError, 'Request is blocked, disallowed, or not consistent with the state of the service, e.g. trying to cancel a task which has already completed?'
+          raise ConflictError,
+                'Request is blocked, disallowed, or not consistent with the state of the service,
+                 e.g. trying to cancel a task which has already completed?'
         when 503
           raise ServerError, 'The Globus Search backend was too slow trying to serve the request,'
         else
