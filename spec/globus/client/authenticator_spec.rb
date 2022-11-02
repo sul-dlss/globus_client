@@ -17,7 +17,7 @@ RSpec.describe Globus::Client::Authenticator do
     end
 
     before do
-      stub_request(:post, "#{Settings.globus.token_url}/v2/oauth2/token")
+      stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
     end
 

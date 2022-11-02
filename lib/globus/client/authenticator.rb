@@ -21,7 +21,7 @@ module Globus
                       grant_type: 'client_credentials',
                       scope: 'urn:globus:auth:scope:transfer.api.globus.org:all' }
 
-        auth_url = Settings.globus.token_url
+        auth_url = Settings.globus.auth_url
         conn = Faraday.new(
           url: auth_url
         )
