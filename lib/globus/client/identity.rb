@@ -40,7 +40,7 @@ module Globus
       private
 
       def valid?(email)
-        return true if email.include? '@stanford.edu'
+        return true if email.end_with? '@stanford.edu'
 
         false
       end
