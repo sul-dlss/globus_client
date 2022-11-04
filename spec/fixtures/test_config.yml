@@ -4,3 +4,4 @@ globus:
   client_id: 'A_VERY_FAKE_CLIENT_ID'
   client_secret: 'A_VERY_FAKE_CLIENT_SECRET'
   endpoint: 'NOT_A_REAL_ENDPOINT'
+  uploads_dir: '/uploads/'
