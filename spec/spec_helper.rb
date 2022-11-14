@@ -4,6 +4,11 @@ require "globus/client"
 require "config"
 require "webmock/rspec"
 
+require 'simplecov'
+SimpleCov.start do 
+  add_filter 'spec'
+end
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -17,3 +22,4 @@ RSpec.configure do |config|
 
   Config.load_and_set_settings("spec/fixtures/test_config.yml")
 end
+
