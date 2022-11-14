@@ -6,5 +6,11 @@ workflows:
     jobs:
       - ruby-rails/lint:
           name: lint
+          executor:
+            name: ruby-rails/ruby
+            ruby-tag: '3.1.2'
       - ruby-rails/test-gem:
           name: test
+          executor:
+            name: ruby-rails/ruby
+            ruby-tag: '3.1.2'
