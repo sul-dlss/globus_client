@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require 'simplecov'
+SimpleCov.start do 
+  add_filter 'spec'
+end
+
 require "globus/client"
 require "config"
 require "webmock/rspec"
@@ -17,3 +22,4 @@ RSpec.configure do |config|
 
   Config.load_and_set_settings("spec/fixtures/test_config.yml")
 end
+
