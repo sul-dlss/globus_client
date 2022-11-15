@@ -35,6 +35,7 @@ module Globus
         dirs.each do |dir|
           path = "#{path}#{dir}/"
           response = call_mkdir(path)
+          # if directory already exists
           if response.status == 502
             error = JSON.parse(response.body)
             next if error['code'] == 'ExternalError.MkdirFailedExists'

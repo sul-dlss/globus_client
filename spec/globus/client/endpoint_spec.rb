@@ -123,5 +123,47 @@ RSpec.describe Globus::Client::Endpoint do
         expect { endpoint.mk_dir(sunet: user, work_id: work, version:) }.not_to raise_error
       end
     end
+
+    context 'when another error is raised' do
+      let(:user) { 'example@stanford.edu' }
+      let(:work) { 'work123' }
+      let(:version) { '1' }
+      let(:mkdir_response_error) do
+        {
+          code: 'ExternalError.SomeOtherError',
+          message: 'External Error',
+          request_id: '1234',
+          resource: '/operation/endpoint/an-endpoint-id/mkdir'
+        }
+      end
+      let(:user_request_body) do
+        {
+          DATA_TYPE: 'mkdir',
+          path: '/uploads/example/'
+        }
+      end
+
+      before do
+        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+          .to_return(status: 200, body: token_response.to_json)
+
+        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+          .with(body: user_request_body.to_json)
+          .to_return(status: 502, body: mkdir_response_error.to_json)
+
+        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+          .with(body: { DATA_TYPE: 'mkdir', path: "/uploads/example/#{work}/" }.to_json)
+          .to_return(status: 200, body: mkdir_response.to_json)
+
+        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+          .with(body: { DATA_TYPE: 'mkdir', path: "/uploads/example/#{work}/#{version}/" }.to_json)
+          .to_return(status: 200, body: mkdir_response.to_json)
+      end
+
+      it '#mk_dir' do
+        expect { endpoint.mk_dir(sunet: user, work_id: work, version:) }
+          .to raise_error(Globus::Client::UnexpectedResponse::EndpointError)
+      end
+    end
   end
 end

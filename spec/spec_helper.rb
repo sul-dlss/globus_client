@@ -5,9 +5,11 @@ SimpleCov.start do
   add_filter 'spec'
 end
 
-require "globus/client"
-require "config"
-require "webmock/rspec"
+require 'globus/client'
+require 'byebug'
+require 'config'
+require 'webmock/rspec'
+
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -22,4 +24,3 @@ RSpec.configure do |config|
 
   Config.load_and_set_settings("spec/fixtures/test_config.yml")
 end
-

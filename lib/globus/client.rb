@@ -9,6 +9,7 @@ require 'globus/client/identity'
 require 'globus/client/unexpected_response'
 
 module Globus
+  # Client for creating connections
   class Client
     def initialize(client_id, client_secret)
       @client_id = client_id

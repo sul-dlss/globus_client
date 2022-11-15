@@ -1,13 +1,11 @@
 [![Gem Version](https://badge.fury.io/rb/globus_client.svg)](https://badge.fury.io/rb/globus_client)
-[![CircleCI](https://circleci.com/gh/sul-dlss-labs/globus_client.svg?style=svg)](https://circleci.com/gh/sul-dlss-labs/globus_client)
-[![Code Climate](https://codeclimate.com/github/sul-dlss-labs/globus_client/badges/gpa.svg)](https://codeclimate.com/github/sul-dlss-labs/globus_client)
-[![Code Climate Test Coverage](https://codeclimate.com/github/sul-dlss-labs/globlus_client/badges/coverage.svg)](https://codeclimate.com/github/sul-dlss-labs/globus_client/coverage)
+[![CircleCI](https://circleci.com/gh/sul-dlss/globus_client.svg?style=svg)](https://circleci.com/gh/sul-dlss/globus_client)
+[![Code Climate](https://codeclimate.com/github/sul-dlss/globus_client/badges/gpa.svg)](https://codeclimate.com/github/sul-dlss/globus_client)
+[![Code Climate Test Coverage](https://api.codeclimate.com/v1/badges/8e6bf1a5d3fc86a6fbd0/test_coverage)](https://codeclimate.com/github/sul-dlss/globus_client/test_coverage)
 
-# GlobusClient
+# Globus::Client
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/globus_client`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Globus::Client is a Ruby gem that acts as a client to the RESTful HTTP APIs provided by the [Globus service](https://docs.globus.org/api/).  
 
 ## Installation
 
@@ -31,11 +29,4 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/globus_client.
-
-# TODO
-- Authenticate w/ client_id & secret -> return a token
-- Create folder(s) on the configured endpoint
-- Set access rights on the created folders
-- Update access rights once files are transfered
-- Transfer (download) files
+Bug reports and pull requests are welcome on GitHub at https://github.com/sul-dlss/globus_client.
