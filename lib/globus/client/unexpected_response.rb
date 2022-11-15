@@ -20,11 +20,14 @@ module Globus
       class ConflictError < StandardError; end
 
       # Error raised when the remote server returns a 503 Bad Gateway
+      class EndpointError < StandardError; end
+
+      # Error raised when the remote server returns a 503 Bad Gateway
       class ServerError < StandardError; end
 
       # @param [Faraday::Response] response
       # See https://docs.globus.org/api/search/errors/
-      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable Metrics/MethodLength, Metrics/CyclomaticComplexity
       def self.call(response)
         case response.status
         when 400
@@ -39,13 +42,15 @@ module Globus
           raise ConflictError,
                 'Request is blocked, disallowed, or not consistent with the state of the service,
                  e.g. trying to cancel a task which has already completed?'
+        when 502
+          raise EndpointError, 'Other error with endpoint.'
         when 503
           raise ServerError, 'The Globus Search backend was too slow trying to serve the request,'
         else
           raise "Unexpected response: #{response.status} #{response.body}"
         end
       end
-      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/MethodLength, Metrics/CyclomaticComplexity
     end
   end
 end

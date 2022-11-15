@@ -46,6 +46,33 @@ RSpec.describe Globus::Client::Identity do
     end
   end
 
+  context 'with an invalid sunet email' do
+    let(:email) { 'example@example.com' }
+    let(:identity_response) do
+      {
+        'identities': [{
+          'name': 'Jane Tester',
+          'email': 'example@example.com',
+          'id': '12345abc',
+          'organization': 'Stanford University',
+          'identity_type': 'login',
+          'username': 'example@example.com',
+          'identity_provider': 'example-identity-provider',
+          'status': 'used'
+        }]
+      }
+    end
+
+    before do
+      stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+        .to_return(status: 200, body: token_response.to_json)
+    end
+
+    it '#get_identity' do
+      expect { identity.get_identity_id(email) }.to raise_error(StandardError)
+    end
+  end
+
   context 'with user not active in Globus' do
     let(:identity_response) do
       {
