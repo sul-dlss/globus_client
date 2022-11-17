@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/module/delegation'
-require 'faraday'
-require 'globus/client/version'
-require 'globus/client/authenticator'
-require 'globus/client/endpoint'
-require 'globus/client/identity'
-require 'globus/client/unexpected_response'
+require "active_support/core_ext/module/delegation"
+require "faraday"
+require "globus/client/version"
+require "globus/client/authenticator"
+require "globus/client/endpoint"
+require "globus/client/identity"
+require "globus/client/unexpected_response"
 
 module Globus
   # Client for creating connections

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'faraday'
+require "faraday"
 
 module Globus
   class Client
@@ -16,7 +16,7 @@ module Globus
         # Transfer API connection
         Faraday.new(
           url: Settings.globus.transfer_url,
-          headers: { 'Authorization': "Bearer #{token}" }
+          headers: {Authorization: "Bearer #{token}"}
         )
       end
 
@@ -26,7 +26,7 @@ module Globus
 
       # This is a temporary method to show parsing of data returned.
       def length
-        objects['total']
+        objects["total"]
       end
 
       # Create a directory https://docs.globus.org/api/transfer/file_operations/#make_directory
@@ -44,7 +44,7 @@ module Globus
           # if directory already exists
           if response.status == 502
             error = JSON.parse(response.body)
-            next if error['code'] == 'ExternalError.MkdirFailedExists'
+            next if error["code"] == "ExternalError.MkdirFailedExists"
 
             UnexpectedResponse.call(response)
           else
@@ -69,9 +69,9 @@ module Globus
       # @return [Faraday::Response]
       def call_mkdir(path)
         response = connection.post("#{endpoint}/mkdir") do |req|
-          req.headers['Content-Type'] = 'application/json'
+          req.headers["Content-Type"] = "application/json"
           req.body = {
-            DATA_TYPE: 'mkdir',
+            DATA_TYPE: "mkdir",
             path:
           }.to_json
         end
@@ -87,14 +87,14 @@ module Globus
       def call_access(path:, id:, sunetid:)
         response = connection.post("#{endpoint}/access") do |req|
           req.body = {
-            DATA_TYPE: 'access',
-            principal_type: 'identity',
+            DATA_TYPE: "access",
+            principal_type: "identity",
             principal: id,
             path:,
-            permissions: 'rw',
+            permissions: "rw",
             notify_email: "#{sunetid}@stanford.edu"
           }.to_json
-          req.headers['Content-Type'] = 'application/json'
+          req.headers["Content-Type"] = "application/json"
         end
         UnexpectedResponse.call(response) unless response.success?
 

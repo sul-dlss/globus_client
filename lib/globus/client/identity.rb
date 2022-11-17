@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'faraday'
+require "faraday"
 
 module Globus
   class Client
@@ -19,10 +19,10 @@ module Globus
       end
 
       def lookup_identity
-        id_endpoint = '/v2/api/identities'
+        id_endpoint = "/v2/api/identities"
         connection.get(id_endpoint) do |req|
-          req.params['usernames'] = @email
-          req.headers['Authorization'] = "Bearer #{token}"
+          req.params["usernames"] = @email
+          req.headers["Authorization"] = "Bearer #{token}"
         end
       end
 
@@ -39,13 +39,13 @@ module Globus
       private
 
       def extract_id(data)
-        identities = data['identities']
+        identities = data["identities"]
         # Select identity with "used" or "private" status
-        matching_users = identities.select { |id| id['username'] == @email }
-        active_users = matching_users.select { |user| (user['status'] == 'used' || user['status'] == 'private') }
+        matching_users = identities.select { |id| id["username"] == @email }
+        active_users = matching_users.select { |user| (user["status"] == "used" || user["status"] == "private") }
         raise StandardError "No matching active Globus user found for #{@email}." if active_users.empty?
 
-        active_users.first['id']
+        active_users.first["id"]
       end
     end
   end

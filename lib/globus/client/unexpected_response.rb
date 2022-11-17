@@ -27,30 +27,28 @@ module Globus
 
       # @param [Faraday::Response] response
       # See https://docs.globus.org/api/search/errors/
-      # rubocop:disable Metrics/MethodLength, Metrics/CyclomaticComplexity
       def self.call(response)
         case response.status
         when 400
           raise BadRequestError, "There was an error with your request: #{response.body}"
         when 401
-          raise UnauthorizedError, 'There was an error with authentication or the access token.'
+          raise UnauthorizedError, "There was an error with authentication or the access token."
         when 403
-          raise ForbiddenError, 'The operation requires privileges which the client does not have.'
+          raise ForbiddenError, "The operation requires privileges which the client does not have."
         when 404
-          raise ResourceNotFound, 'Resource does not exist or is missing.'
+          raise ResourceNotFound, "Resource does not exist or is missing."
         when 409
           raise ConflictError,
-                'Request is blocked, disallowed, or not consistent with the state of the service,
+            'Request is blocked, disallowed, or not consistent with the state of the service,
                  e.g. trying to cancel a task which has already completed?'
         when 502
-          raise EndpointError, 'Other error with endpoint.'
+          raise EndpointError, "Other error with endpoint."
         when 503
-          raise ServerError, 'The Globus Search backend was too slow trying to serve the request,'
+          raise ServerError, "The Globus Search backend was too slow trying to serve the request,"
         else
           raise "Unexpected response: #{response.status} #{response.body}"
         end
       end
-      # rubocop:enable Metrics/MethodLength, Metrics/CyclomaticComplexity
     end
   end
 end
