@@ -7,6 +7,8 @@ RSpec.describe Globus::Client::Endpoint do
     let(:globus_client) { Globus::Client.new(client_id, client_secret) }
     let(:globus_endpoint) { Settings.globus.endpoint }
     let(:endpoint) { described_class.new(globus_client.token) }
+    let(:user) { 'example' }
+    let(:work) { '123' }
     let(:token_response) do
       {
         access_token: 'a_long_silly_token',
@@ -71,8 +73,6 @@ RSpec.describe Globus::Client::Endpoint do
     end
 
     context 'when creating a directory that does not exist' do
-      let(:user) { 'example@stanford.edu' }
-      let(:work) { 'work123' }
       let(:version) { '1' }
 
       before do
@@ -84,13 +84,11 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it '#mk_dir' do
-        expect { endpoint.mk_dir(sunet: user, work_id: work, version:) }.not_to raise_error
+        expect { endpoint.mk_dir(sunetid: user, work_id: work, version:) }.not_to raise_error
       end
     end
 
     context 'when creating a directory for a user that exists' do
-      let(:user) { 'example@stanford.edu' }
-      let(:work) { 'work123' }
       let(:version) { '1' }
       let(:mkdir_response_user) do
         {
@@ -120,13 +118,11 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it '#mk_dir' do
-        expect { endpoint.mk_dir(sunet: user, work_id: work, version:) }.not_to raise_error
+        expect { endpoint.mk_dir(sunetid: user, work_id: work, version:) }.not_to raise_error
       end
     end
 
     context 'when another error is raised' do
-      let(:user) { 'example@stanford.edu' }
-      let(:work) { 'work123' }
       let(:version) { '1' }
       let(:mkdir_response_error) do
         {
@@ -161,8 +157,89 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it '#mk_dir' do
-        expect { endpoint.mk_dir(sunet: user, work_id: work, version:) }
+        expect { endpoint.mk_dir(sunetid: user, work_id: work, version:) }
           .to raise_error(Globus::Client::UnexpectedResponse::EndpointError)
+      end
+    end
+
+    context 'when setting permissions on a directory' do
+      let(:version) { '1' }
+      let(:identity_response) do
+        {
+          'identities': [{
+            'name': 'Jane Tester',
+            'email': 'example@stanford.edu',
+            'id': '12345abc',
+            'username': 'example@stanford.edu',
+            'status': 'used'
+          }]
+        }
+      end
+      let(:access_response) do
+        {
+          'code': 'Created',
+          'resource': '/endpoint/epname/access',
+          'DATA_TYPE': 'access_create_result',
+          'request_id': 'abc123',
+          'access_id': 12_345,
+          'message': 'Access rule created successfully.'
+        }
+      end
+
+      before do
+        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+          .to_return(status: 200, body: token_response.to_json)
+
+        stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
+          .to_return(status: 200, body: identity_response.to_json)
+
+        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/access")
+          .to_return(status: 201, body: access_response.to_json)
+      end
+
+      it '#set_permissions' do
+        expect { endpoint.set_permissions(sunetid: user, work_id: work, version:) }.not_to raise_error
+      end
+    end
+
+    context 'when setting permissions on an invalid directory' do
+      let(:version) { '1' }
+      let(:identity_response) do
+        {
+          'identities': [{
+            'name': 'Jane Tester',
+            'email': 'example@stanford.edu',
+            'id': '12345abc',
+            'username': 'example@stanford.edu',
+            'status': 'used'
+          }]
+        }
+      end
+      let(:access_response) do
+        {
+          'code': 'InvalidPath',
+          'resource': '/endpoint/epname/access',
+          'DATA_TYPE': 'access_create_result',
+          'request_id': 'abc123',
+          'access_id': 12_345,
+          'message': 'Invalid Path'
+        }
+      end
+
+      before do
+        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+          .to_return(status: 200, body: token_response.to_json)
+
+        stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
+          .to_return(status: 200, body: identity_response.to_json)
+
+        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/access")
+          .to_return(status: 400, body: access_response.to_json)
+      end
+
+      it '#set_permissions' do
+        expect { endpoint.set_permissions(sunetid: user, work_id: work, version:) }
+          .to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
       end
     end
   end
