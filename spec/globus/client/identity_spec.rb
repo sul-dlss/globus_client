@@ -5,7 +5,7 @@ RSpec.describe Globus::Client::Identity do
   let(:client_secret) { Settings.globus.client_secret }
   let(:globus_client) { Globus::Client.new(client_id, client_secret) }
   let(:identity) { described_class.new(globus_client.token) }
-  let(:email) { 'example@stanford.edu' }
+  let(:sunetid) { 'example' }
   let(:token_response) do
     {
       access_token: 'a_long_silly_token',
@@ -42,34 +42,7 @@ RSpec.describe Globus::Client::Identity do
     end
 
     it '#get_identity' do
-      expect(identity.get_identity_id(email)).to eq '12345abc'
-    end
-  end
-
-  context 'with an invalid sunet email' do
-    let(:email) { 'example@example.com' }
-    let(:identity_response) do
-      {
-        'identities': [{
-          'name': 'Jane Tester',
-          'email': 'example@example.com',
-          'id': '12345abc',
-          'organization': 'Stanford University',
-          'identity_type': 'login',
-          'username': 'example@example.com',
-          'identity_provider': 'example-identity-provider',
-          'status': 'used'
-        }]
-      }
-    end
-
-    before do
-      stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-        .to_return(status: 200, body: token_response.to_json)
-    end
-
-    it '#get_identity' do
-      expect { identity.get_identity_id(email) }.to raise_error(StandardError)
+      expect(identity.get_identity_id(sunetid)).to eq '12345abc'
     end
   end
 
@@ -98,7 +71,7 @@ RSpec.describe Globus::Client::Identity do
     end
 
     it '#get_identity' do
-      expect { identity.get_identity_id(email) }.to raise_error(StandardError)
+      expect { identity.get_identity_id(sunetid) }.to raise_error(StandardError)
     end
   end
 
@@ -127,7 +100,7 @@ RSpec.describe Globus::Client::Identity do
     end
 
     it 'raises a ForbiddenError' do
-      expect { identity.get_identity_id(email) }.to raise_error(Globus::Client::UnexpectedResponse::ForbiddenError)
+      expect { identity.get_identity_id(sunetid) }.to raise_error(Globus::Client::UnexpectedResponse::ForbiddenError)
     end
   end
 end

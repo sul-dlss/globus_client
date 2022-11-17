@@ -26,9 +26,8 @@ module Globus
         end
       end
 
-      def get_identity_id(email)
-        @email = email
-        raise StandardError, "Identity #{email} should be in form of: sunet@stanford.edu." unless valid?(@email)
+      def get_identity_id(sunetid)
+        @email = "#{sunetid}@stanford.edu"
 
         response = lookup_identity
         UnexpectedResponse.call(response) unless response.success?
@@ -38,12 +37,6 @@ module Globus
       end
 
       private
-
-      def valid?(email)
-        return true if email.end_with? '@stanford.edu'
-
-        false
-      end
 
       def extract_id(data)
         identities = data['identities']
