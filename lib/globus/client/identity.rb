@@ -18,14 +18,6 @@ module Globus
         )
       end
 
-      def lookup_identity
-        id_endpoint = "/v2/api/identities"
-        connection.get(id_endpoint) do |req|
-          req.params["usernames"] = @email
-          req.headers["Authorization"] = "Bearer #{token}"
-        end
-      end
-
       def get_identity_id(sunetid)
         @email = "#{sunetid}@stanford.edu"
 
@@ -37,6 +29,14 @@ module Globus
       end
 
       private
+
+      def lookup_identity
+        id_endpoint = "/v2/api/identities"
+        connection.get(id_endpoint) do |req|
+          req.params["usernames"] = @email
+          req.headers["Authorization"] = "Bearer #{token}"
+        end
+      end
 
       def extract_id(data)
         identities = data["identities"]
