@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
-require 'simplecov'
-SimpleCov.start do 
-  add_filter 'spec'
+require "simplecov"
+SimpleCov.start do
+  add_filter "spec"
 end
 
-require 'globus/client'
-require 'byebug'
-require 'config'
-require 'webmock/rspec'
-
+require "globus/client"
+require "byebug"
+require "config"
+require "webmock/rspec"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

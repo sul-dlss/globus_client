@@ -5,30 +5,30 @@ RSpec.describe Globus::Client::Identity do
   let(:client_secret) { Settings.globus.client_secret }
   let(:globus_client) { Globus::Client.new(client_id, client_secret) }
   let(:identity) { described_class.new(globus_client.token) }
-  let(:sunetid) { 'example' }
+  let(:sunetid) { "example" }
   let(:token_response) do
     {
-      access_token: 'a_long_silly_token',
-      scope: 'urn:globus:auth:scope:transfer.api.globus.org:all',
+      access_token: "a_long_silly_token",
+      scope: "urn:globus:auth:scope:transfer.api.globus.org:all",
       expires_in: 172_800,
-      token_type: 'Bearer',
-      resource_server: 'transfer.api.globus.org',
+      token_type: "Bearer",
+      resource_server: "transfer.api.globus.org",
       other_tokens: []
     }
   end
 
-  context 'with a valid sunet email' do
+  context "with a valid sunet email" do
     let(:identity_response) do
       {
-        'identities': [{
-          'name': 'Jane Tester',
-          'email': 'example@stanford.edu',
-          'id': '12345abc',
-          'organization': 'Stanford University',
-          'identity_type': 'login',
-          'username': 'example@stanford.edu',
-          'identity_provider': 'example-identity-provider',
-          'status': 'used'
+        identities: [{
+          name: "Jane Tester",
+          email: "example@stanford.edu",
+          id: "12345abc",
+          organization: "Stanford University",
+          identity_type: "login",
+          username: "example@stanford.edu",
+          identity_provider: "example-identity-provider",
+          status: "used"
         }]
       }
     end
@@ -41,23 +41,23 @@ RSpec.describe Globus::Client::Identity do
         .to_return(status: 200, body: identity_response.to_json)
     end
 
-    it '#get_identity' do
-      expect(identity.get_identity_id(sunetid)).to eq '12345abc'
+    it "#get_identity" do
+      expect(identity.get_identity_id(sunetid)).to eq "12345abc"
     end
   end
 
-  context 'with user not active in Globus' do
+  context "with user not active in Globus" do
     let(:identity_response) do
       {
-        'identities': [{
-          'name': 'Jane Tester',
-          'email': 'example@stanford.edu',
-          'id': '12345abc',
-          'organization': 'Stanford University',
-          'identity_type': 'login',
-          'username': 'example@stanford.edu',
-          'identity_provider': 'example-identity-provider',
-          'status': 'unused'
+        identities: [{
+          name: "Jane Tester",
+          email: "example@stanford.edu",
+          id: "12345abc",
+          organization: "Stanford University",
+          identity_type: "login",
+          username: "example@stanford.edu",
+          identity_provider: "example-identity-provider",
+          status: "unused"
         }]
       }
     end
@@ -70,22 +70,22 @@ RSpec.describe Globus::Client::Identity do
         .to_return(status: 200, body: identity_response.to_json)
     end
 
-    it '#get_identity' do
+    it "#get_identity" do
       expect { identity.get_identity_id(sunetid) }.to raise_error(StandardError)
     end
   end
 
-  context 'when API returns a 403' do
+  context "when API returns a 403" do
     # Example from https://docs.globus.org/api/search/errors/
     let(:identity_response) do
       {
-        'code': 'AccessForbidden.NeedsOwner',
-        'message': 'The operation you have requested requires "Owner" rights',
-        'status': 403,
-        'error_data': [
+        code: "AccessForbidden.NeedsOwner",
+        message: 'The operation you have requested requires "Owner" rights',
+        status: 403,
+        error_data: [
           {
-            'code': 'AccessForbidden.NeedsOwner',
-            'message': 'You are not permitted to FOO a BAR which you do not own'
+            code: "AccessForbidden.NeedsOwner",
+            message: "You are not permitted to FOO a BAR which you do not own"
           }
         ]
       }
@@ -99,7 +99,7 @@ RSpec.describe Globus::Client::Identity do
         .to_return(status: 403, body: identity_response.to_json)
     end
 
-    it 'raises a ForbiddenError' do
+    it "raises a ForbiddenError" do
       expect { identity.get_identity_id(sunetid) }.to raise_error(Globus::Client::UnexpectedResponse::ForbiddenError)
     end
   end
