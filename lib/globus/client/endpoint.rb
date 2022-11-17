@@ -80,6 +80,7 @@ module Globus
         response
       end
 
+      # Makes the API call to Globus to set permissions
       # @param path [String] the directory on the globus endpoint
       # @param id [String] globus identifier associated with the sunetid email
       # @param sunetid [String] sunetid, not email address
