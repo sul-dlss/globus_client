@@ -117,11 +117,11 @@ RSpec.describe Globus::Client::Endpoint do
           .to_return(status: 200, body: mkdir_response.to_json)
 
         stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
-          .with(body: { DATA_TYPE: 'mkdir', path: "/uploads/example/work#{work}/" }.to_json)
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
 
         stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
-          .with(body: { DATA_TYPE: 'mkdir', path: "/uploads/example/work#{work}/version#{version}/" }.to_json)
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work}/version#{version}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
 
