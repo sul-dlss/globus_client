@@ -1,27 +1,18 @@
 # frozen_string_literal: true
 
-require "faraday"
-
 module Globus
   class Client
     # The namespace for endpoint API operations
     class Endpoint
-      def initialize(token)
-        @token = token
-      end
-
-      attr_reader :token
-
-      def connection
-        # Transfer API connection
-        Faraday.new(
-          url: Settings.globus.transfer_url,
-          headers: {Authorization: "Bearer #{token}"}
-        )
-      end
-
-      def endpoint
-        "/v0.10/operation/endpoint/#{Settings.globus.endpoint}"
+      # @param config [#token, #uploads_directory, #transfer_endpoint_id, #transfer_url, #auth_url] configuration for the gem
+      # @param user_id [String] conventionally, we use the SUNet ID, not an email address
+      # @param work_id [#to_s] the identifier of the work (e.g., an H2 work)
+      # @param work_version [#to_s] the version of the work (e.g., an H2 version)
+      def initialize(config, user_id:, work_id:, work_version:)
+        @config = config
+        @user_id = user_id
+        @work_id = work_id
+        @work_version = work_version
       end
 
       # This is a temporary method to show parsing of data returned.
@@ -30,12 +21,9 @@ module Globus
       end
 
       # Create a directory https://docs.globus.org/api/transfer/file_operations/#make_directory
-      # @param sunetid [String] sunetid (not email address)
-      # @param work_id [String] the h2 work id
-      # @param version [String] the h2 work's version number
-      def mk_dir(sunetid:, work_id:, version:)
-        path = Settings.globus.uploads_dir
-        dirs = [sunetid, "work#{work_id}", "version#{version}"]
+      def mkdir
+        path = config.uploads_directory
+        dirs = [user_id, "work#{work_id}", "version#{work_version}"]
 
         # transfer API does not support recursive directory creation
         dirs.each do |dir|
@@ -54,17 +42,28 @@ module Globus
       end
 
       # Assign a user read/write permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
-      # @param sunetid [String] sunetid (not email address)
-      # @param work_id [String] the h2 work id
-      # @param version [String] the h2 work's version number
-      def set_permissions(sunetid:, work_id:, version:)
-        path = "#{Settings.globus.uploads_dir}/#{sunetid}/work#{work_id}/version#{version}/"
-        identity = Globus::Client::Identity.new(token)
-        id = identity.get_identity_id(sunetid)
-        call_access(path:, id:, sunetid:)
+      def set_permissions
+        path = "#{config.uploads_directory}/#{user_id}/work#{work_id}/version#{work_version}/"
+        identity = Globus::Client::Identity.new(config)
+        id = identity.get_identity_id(user_id)
+        call_access(path:, id:, user_id:)
       end
 
       private
+
+      attr_reader :config, :user_id, :work_id, :work_version
+
+      def connection
+        # Transfer API connection
+        Faraday.new(
+          url: config.transfer_url,
+          headers: {Authorization: "Bearer #{config.token}"}
+        )
+      end
+
+      def endpoint
+        "/v0.10/operation/endpoint/#{config.transfer_endpoint_id}"
+      end
 
       # @return [Faraday::Response]
       def call_mkdir(path)
@@ -82,10 +81,10 @@ module Globus
 
       # Makes the API call to Globus to set permissions
       # @param path [String] the directory on the globus endpoint
-      # @param id [String] globus identifier associated with the sunetid email
-      # @param sunetid [String] sunetid, not email address
+      # @param id [String] globus identifier associated with the user_id email
+      # @param user_id [String] user_id, not email address
       # @return [Faraday::Response]
-      def call_access(path:, id:, sunetid:)
+      def call_access(path:, id:, user_id:)
         response = connection.post("#{endpoint}/access") do |req|
           req.body = {
             DATA_TYPE: "access",
@@ -93,7 +92,7 @@ module Globus
             principal: id,
             path:,
             permissions: "rw",
-            notify_email: "#{sunetid}@stanford.edu"
+            notify_email: "#{user_id}@stanford.edu"
           }.to_json
           req.headers["Content-Type"] = "application/json"
         end

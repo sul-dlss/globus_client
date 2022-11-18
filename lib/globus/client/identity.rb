@@ -1,21 +1,11 @@
 # frozen_string_literal: true
 
-require "faraday"
-
 module Globus
   class Client
     # Lookup of a Globus identity ID
     class Identity
-      def initialize(token)
-        @token = token
-      end
-
-      attr_reader :token
-
-      def connection
-        Faraday.new(
-          url: Settings.globus.auth_url
-        )
+      def initialize(config)
+        @config = config
       end
 
       def get_identity_id(sunetid)
@@ -30,11 +20,17 @@ module Globus
 
       private
 
+      attr_reader :config
+
+      def connection
+        Faraday.new(url: config.auth_url)
+      end
+
       def lookup_identity
         id_endpoint = "/v2/api/identities"
         connection.get(id_endpoint) do |req|
           req.params["usernames"] = @email
-          req.headers["Authorization"] = "Bearer #{token}"
+          req.headers["Authorization"] = "Bearer #{config.token}"
         end
       end
 
