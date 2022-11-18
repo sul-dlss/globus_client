@@ -7,7 +7,6 @@ end
 
 require "globus/client"
 require "byebug"
-require "config"
 require "webmock/rspec"
 
 RSpec.configure do |config|
@@ -20,6 +19,4 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-
-  Config.load_and_set_settings("spec/fixtures/test_config.yml")
 end

@@ -1,34 +1,42 @@
 # frozen_string_literal: true
 
-require "faraday"
-
 module Globus
   class Client
     # The namespace for the "login" command
     class Authenticator
-      def initialize(client_id, client_secret)
-        @client_id = client_id
-        @client_secret = client_secret
+      def self.token(client_id, client_secret, auth_url)
+        new(client_id, client_secret, auth_url).token
       end
 
-      attr_accessor :client_id, :client_secret
+      def initialize(client_id, client_secret, auth_url)
+        @client_id = client_id
+        @client_secret = client_secret
+        @auth_url = auth_url
+      end
 
+      # Request an access_token
       def token
-        # Request an access_token
-        form_data = {client_id:,
-                     client_secret:,
-                     encoding: "form",
-                     grant_type: "client_credentials",
-                     scope: "urn:globus:auth:scope:transfer.api.globus.org:all"}
-
-        auth_url = Settings.globus.auth_url
-        conn = Faraday.new(
-          url: auth_url
-        )
-
-        response = conn.post("/v2/oauth2/token", form_data)
+        response = connection.post("/v2/oauth2/token", form_data)
 
         JSON.parse(response.body)["access_token"]
+      end
+
+      private
+
+      attr_reader :client_id, :client_secret, :auth_url
+
+      def connection
+        Faraday.new(url: auth_url)
+      end
+
+      def form_data
+        {
+          client_id:,
+          client_secret:,
+          encoding: "form",
+          grant_type: "client_credentials",
+          scope: "urn:globus:auth:scope:transfer.api.globus.org:all"
+        }
       end
     end
   end

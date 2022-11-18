@@ -1,24 +1,26 @@
 # frozen_string_literal: true
 
 RSpec.describe Globus::Client::Endpoint do
-  context "with a valid token" do
-    let(:client_id) { Settings.globus.client_id }
-    let(:client_secret) { Settings.globus.client_secret }
-    let(:globus_client) { Globus::Client.new(client_id, client_secret) }
-    let(:globus_endpoint) { Settings.globus.endpoint }
-    let(:endpoint) { described_class.new(globus_client.token) }
-    let(:user) { "example" }
-    let(:work) { "123" }
-    let(:token_response) do
-      {
-        access_token: "a_long_silly_token",
-        scope: "urn:globus:auth:scope:transfer.api.globus.org:all",
-        expires_in: 172_800,
-        token_type: "Bearer",
-        resource_server: "transfer.api.globus.org",
-        other_tokens: []
-      }
-    end
+  subject(:endpoint) { described_class.new(config, user_id:, work_id:, work_version:) }
+
+  let(:config) { OpenStruct.new(uploads_directory:, transfer_url:, transfer_endpoint_id:) }
+  let(:transfer_endpoint_id) { "NOT_A_REAL_ENDPOINT" }
+  let(:transfer_url) { "https://transfer.api.example.org" }
+  let(:uploads_directory) { "/uploads/" }
+  let(:user_id) { "example" }
+  let(:work_id) { "123" }
+  let(:work_version) { "1" }
+  let(:mkdir_response) do
+    {
+      DATA_TYPE: "mkdir_result",
+      code: "DirectoryCreated",
+      message: "The directory was created successfully",
+      request_id: "12345",
+      resource: "/operation/endpoint/an-endpoint-identifier/mkdir"
+    }
+  end
+
+  describe "#length" do
     let(:list_response) do
       {
         DATA: [
@@ -40,7 +42,7 @@ RSpec.describe Globus::Client::Endpoint do
         ],
         DATA_TYPE: "file_list",
         absolute_path: "/",
-        endpoint: Settings.globus.endpoint.to_s,
+        endpoint: transfer_endpoint_id,
         length: 1,
         path: "/~/",
         rename_supported: true,
@@ -48,48 +50,30 @@ RSpec.describe Globus::Client::Endpoint do
         total: 1
       }
     end
-    let(:mkdir_response) do
-      {
-        DATA_TYPE: "mkdir_result",
-        code: "DirectoryCreated",
-        message: "The directory was created successfully",
-        request_id: "12345",
-        resource: "/operation/endpoint/an-endpoint-identifier/mkdir"
-      }
+
+    before do
+      stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls")
+        .to_return(status: 200, body: list_response.to_json)
     end
 
-    context "when listing files" do
-      before do
-        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-          .to_return(status: 200, body: token_response.to_json)
-
-        stub_request(:get, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/ls")
-          .to_return(status: 200, body: list_response.to_json)
-      end
-
-      it "#list_stuff" do
-        expect(endpoint.length).to eq 1
-      end
+    it "returns the length" do
+      expect(endpoint.length).to eq 1
     end
+  end
 
+  describe "#mkdir" do
     context "when creating a directory that does not exist" do
-      let(:version) { "1" }
-
       before do
-        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-          .to_return(status: 200, body: token_response.to_json)
-
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .to_return(status: 202, body: mkdir_response.to_json)
       end
 
-      it "#mk_dir" do
-        expect { endpoint.mk_dir(sunetid: user, work_id: work, version:) }.not_to raise_error
+      it "does not raise error" do
+        expect { endpoint.mkdir }.not_to raise_error
       end
     end
 
     context "when creating a directory for a user that exists" do
-      let(:version) { "1" }
       let(:mkdir_response_user) do
         {
           code: "ExternalError.MkdirFailed.Exists",
@@ -106,32 +90,28 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-          .to_return(status: 200, body: token_response.to_json)
-
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: user_request_body.to_json)
           .to_return(status: 502, body: mkdir_response_user.to_json)
 
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .to_return(status: 200, body: mkdir_response.to_json)
 
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
-          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work}/"}.to_json)
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work_id}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
 
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
-          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work}/version#{version}/"}.to_json)
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work_id}/version#{work_version}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
 
-      it "#mk_dir" do
-        expect { endpoint.mk_dir(sunetid: user, work_id: work, version:) }.not_to raise_error
+      it "does not raise" do
+        expect { endpoint.mkdir }.not_to raise_error
       end
     end
 
     context "when another error is raised" do
-      let(:version) { "1" }
       let(:mkdir_response_error) do
         {
           code: "ExternalError.SomeOtherError",
@@ -148,30 +128,35 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-          .to_return(status: 200, body: token_response.to_json)
-
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: user_request_body.to_json)
           .to_return(status: 502, body: mkdir_response_error.to_json)
 
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
-          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/#{work}/"}.to_json)
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/#{work_id}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
 
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/mkdir")
-          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/#{work}/#{version}/"}.to_json)
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/#{work_id}/#{work_version}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
 
-      it "#mk_dir" do
-        expect { endpoint.mk_dir(sunetid: user, work_id: work, version:) }
-          .to raise_error(Globus::Client::UnexpectedResponse::EndpointError)
+      it "raises an EndpointError" do
+        expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::EndpointError)
       end
+    end
+  end
+
+  describe "#set_permissions" do
+    let(:fake_identity) do
+      instance_double(Globus::Client::Identity, get_identity_id: "example")
+    end
+
+    before do
+      allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
     end
 
     context "when setting permissions on a directory" do
-      let(:version) { "1" }
       let(:identity_response) do
         {
           identities: [{
@@ -195,23 +180,16 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-          .to_return(status: 200, body: token_response.to_json)
-
-        stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
-          .to_return(status: 200, body: identity_response.to_json)
-
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/access")
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 201, body: access_response.to_json)
       end
 
       it "#set_permissions" do
-        expect { endpoint.set_permissions(sunetid: user, work_id: work, version:) }.not_to raise_error
+        expect { endpoint.set_permissions }.not_to raise_error
       end
     end
 
     context "when setting permissions on an invalid directory" do
-      let(:version) { "1" }
       let(:identity_response) do
         {
           identities: [{
@@ -235,19 +213,12 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
-          .to_return(status: 200, body: token_response.to_json)
-
-        stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
-          .to_return(status: 200, body: identity_response.to_json)
-
-        stub_request(:post, "#{Settings.globus.transfer_url}/v0.10/operation/endpoint/#{globus_endpoint}/access")
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 400, body: access_response.to_json)
       end
 
       it "#set_permissions" do
-        expect { endpoint.set_permissions(sunetid: user, work_id: work, version:) }
-          .to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+        expect { endpoint.set_permissions }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
       end
     end
   end

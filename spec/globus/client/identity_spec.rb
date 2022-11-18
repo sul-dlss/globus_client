@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe Globus::Client::Identity do
-  let(:client_id) { Settings.globus.client_id }
-  let(:client_secret) { Settings.globus.client_secret }
-  let(:globus_client) { Globus::Client.new(client_id, client_secret) }
-  let(:identity) { described_class.new(globus_client.token) }
+  subject(:identity) { described_class.new(config) }
+
+  let(:auth_url) { "https://auth.example.org" }
+  let(:client_id) { "client_id" }
+  let(:client_secret) { "client_secret" }
+  let(:config) { OpenStruct.new(auth_url:) }
   let(:sunetid) { "example" }
   let(:token_response) do
     {
@@ -34,10 +36,10 @@ RSpec.describe Globus::Client::Identity do
     end
 
     before do
-      stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+      stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
         .to_return(status: 200, body: identity_response.to_json)
     end
 
@@ -63,10 +65,10 @@ RSpec.describe Globus::Client::Identity do
     end
 
     before do
-      stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+      stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
         .to_return(status: 200, body: identity_response.to_json)
     end
 
@@ -92,10 +94,10 @@ RSpec.describe Globus::Client::Identity do
     end
 
     before do
-      stub_request(:post, "#{Settings.globus.auth_url}/v2/oauth2/token")
+      stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{Settings.globus.auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
         .to_return(status: 403, body: identity_response.to_json)
     end
 
