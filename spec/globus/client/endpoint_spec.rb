@@ -145,6 +145,17 @@ RSpec.describe Globus::Client::Endpoint do
         expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::EndpointError)
       end
     end
+
+    context "when the Globus server is under maintenance and returns a 503" do
+      before do
+        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+          .to_return(status: 503)
+      end
+
+      it "raises ServiceUnavailable" do
+        expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::ServiceUnavailable)
+      end
+    end
   end
 
   describe "#set_permissions" do
@@ -220,6 +231,41 @@ RSpec.describe Globus::Client::Endpoint do
       it "#set_permissions" do
         expect { endpoint.set_permissions }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
       end
+    end
+  end
+
+  context "when using an invalid endpoint name" do
+    let(:transfer_endpoint_id) { "not%20right" }
+    let(:endpoint_response) do
+      {code: "BadRequest",
+       message: "Invalid endpoint name 'u_nndvljceuzcyjknli7f5t3r6ja#not right': Invalid characters",
+       request_id: "ABC123",
+       resource: "/operation/endpoint/not%20right/ls"}
+    end
+
+    before do
+      stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        .to_return(status: 400, body: endpoint_response.to_json)
+    end
+
+    it "raises a BadRequestError" do
+      expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+    end
+  end
+
+  context "when some other error not matching existing statuses occurs" do
+    let(:other_response) do
+      {code: "OtherError",
+       message: "Some problem occurred."}
+    end
+
+    before do
+      stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        .to_return(status: 500, body: other_response.to_json)
+    end
+
+    it "raises an UnexpectedResponse" do
+      expect { endpoint.mkdir }.to raise_error(StandardError)
     end
   end
 end

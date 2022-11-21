@@ -4,49 +4,45 @@ module Globus
   class Client
     # Handles unexpected responses when communicating with Globus
     class UnexpectedResponse
-      # Error raised when the remote server returns a 400 BadRequest
+      # Error raised when the Globus Auth or Transfer API returns a 400 error
       class BadRequestError < StandardError; end
 
-      # Error raised when the remote server returns a 401 Unauthorized
+      # Error raised by the Globus Auth API returns a 401 Unauthorized
       class UnauthorizedError < StandardError; end
 
-      # Error raised when the remote server returns a 403 Forbidden
+      # Error raised when the Globus Auth or Transfer API returns a 403 Forbidden
       class ForbiddenError < StandardError; end
 
-      # Error raised when the remote server returns a 404 NotFound
+      # Error raised when the Globus Auth or Transfer API returns a 404 NotFound
       class ResourceNotFound < StandardError; end
 
-      # Error raised when the remote server returns a 409 Conflict
-      class ConflictError < StandardError; end
-
-      # Error raised when the remote server returns a 503 Bad Gateway
+      # Error raised when the Globus Transfer API returns a 502 Bad Gateway
       class EndpointError < StandardError; end
 
       # Error raised when the remote server returns a 503 Bad Gateway
-      class ServerError < StandardError; end
+      class ServiceUnavailable < StandardError; end
 
       # @param [Faraday::Response] response
-      # See https://docs.globus.org/api/search/errors/
+      # https://docs.globus.org/api/transfer/file_operations/#common_errors
+      # https://docs.globus.org/api/transfer/file_operations/#errors
+      # https://docs.globus.org/api/transfer/acl/#common_errors
+      # https://docs.globus.org/api/auth/reference/
       def self.call(response)
         case response.status
         when 400
-          raise BadRequestError, "There was an error with your request: #{response.body}"
+          raise BadRequestError, "Invalid path or another error with the request: #{response.body}"
         when 401
-          raise UnauthorizedError, "There was an error with authentication or the access token."
+          raise UnauthorizedError, "There was a problem with the access token: #{response.body} "
         when 403
-          raise ForbiddenError, "The operation requires privileges which the client does not have."
+          raise ForbiddenError, "The operation requires privileges which the client does not have: #{response.body}"
         when 404
-          raise ResourceNotFound, "Resource does not exist or is missing."
-        when 409
-          raise ConflictError,
-            "Request is blocked, disallowed, or not consistent with the state of the service,
-                 e.g. trying to cancel a task which has already completed?"
+          raise ResourceNotFound, "Endpoint ID not found or resource does not exist: #{response.body}"
         when 502
-          raise EndpointError, "Other error with endpoint."
+          raise EndpointError, "Other error with endpoint: #{response.body}"
         when 503
-          raise ServerError, "The Globus Search backend was too slow trying to serve the request,"
+          raise ServiceUnavailable, "The service is down for maintenance."
         else
-          raise "Unexpected response: #{response.status} #{response.body}"
+          raise StandardError, "Unexpected response: #{response.status} #{response.body}"
         end
       end
     end

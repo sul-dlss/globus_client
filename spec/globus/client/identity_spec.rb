@@ -105,4 +105,29 @@ RSpec.describe Globus::Client::Identity do
       expect { identity.get_identity_id(sunetid) }.to raise_error(Globus::Client::UnexpectedResponse::ForbiddenError)
     end
   end
+
+  context "when API returns a 401" do
+    let(:identity_response) do
+      {errors:
+        [{detail: "Call must be authenticated",
+          code: "UNAUTHORIZED",
+          title: "Unauthorized",
+          id: "1234-abcd-01234",
+          status: "401"}],
+       error: "unauthorized",
+       error_description: "Unauthorized"}
+    end
+
+    before do
+      stub_request(:post, "#{auth_url}/v2/oauth2/token")
+        .to_return(status: 200, body: token_response.to_json)
+
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
+        .to_return(status: 401, body: identity_response.to_json)
+    end
+
+    it "raises an UnauthorizedError" do
+      expect { identity.get_identity_id(sunetid) }.to raise_error(Globus::Client::UnexpectedResponse::UnauthorizedError)
+    end
+  end
 end
