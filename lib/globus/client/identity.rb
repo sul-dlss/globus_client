@@ -39,7 +39,7 @@ module Globus
         # Select identity with "used" or "private" status
         matching_users = identities.select { |id| id["username"] == @email }
         active_users = matching_users.select { |user| (user["status"] == "used" || user["status"] == "private") }
-        raise StandardError "No matching active Globus user found for #{@email}." if active_users.empty?
+        raise "No matching active Globus user found for #{@email}." if active_users.empty?
 
         active_users.first["id"]
       end
