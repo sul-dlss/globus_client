@@ -15,7 +15,7 @@ module Globus
         @work_version = work_version
       end
 
-      # This is a temporary method to show parsing of data returned.
+      # NOTE: This is a temporary method to show parsing of data returned.
       def length
         objects["total"]
       end
@@ -24,10 +24,17 @@ module Globus
       def mkdir
         # transfer API does not support recursive directory creation
         paths.each do |path|
-          response = call_mkdir(path)
+          response = connection.post("#{base_url}/mkdir") do |req|
+            req.headers["Content-Type"] = "application/json"
+            req.body = {
+              DATA_TYPE: "mkdir",
+              path:
+            }.to_json
+          end
+
           next if response.success?
 
-          # if directory already exists
+          # Ignore error if directory already exists
           if response.status == 502
             error = JSON.parse(response.body)
             next if error["code"] == "ExternalError.MkdirFailedExists"
@@ -39,10 +46,21 @@ module Globus
 
       # Assign a user read/write permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
       def set_permissions
-        path = "#{config.uploads_directory}/#{user_id}/work#{work_id}/version#{work_version}/"
-        identity = Globus::Client::Identity.new(config)
-        id = identity.get_identity_id(user_id)
-        call_access(path:, id:, user_id:)
+        response = connection.post("#{base_url}/access") do |req|
+          req.body = {
+            DATA_TYPE: "access",
+            principal_type: "identity",
+            principal: identity.get_identity_id(user_id),
+            path: paths.last,
+            permissions: "rw",
+            notify_email: "#{user_id}@stanford.edu"
+          }.to_json
+          req.headers["Content-Type"] = "application/json"
+        end
+
+        return response if response.success?
+
+        UnexpectedResponse.call(response)
       end
 
       private
@@ -55,6 +73,10 @@ module Globus
           url: config.transfer_url,
           headers: {Authorization: "Bearer #{config.token}"}
         )
+      end
+
+      def identity
+        Globus::Client::Identity.new(config)
       end
 
       # Builds up a path from a list of path elements. E.g., input would look like:
@@ -71,48 +93,16 @@ module Globus
         [user_id, "work#{work_id}", "version#{work_version}"]
       end
 
-      def endpoint
-        "/v0.10/operation/endpoint/#{config.transfer_endpoint_id}"
-      end
-
-      # @return [Faraday::Response]
-      def call_mkdir(path)
-        connection.post("#{endpoint}/mkdir") do |req|
-          req.headers["Content-Type"] = "application/json"
-          req.body = {
-            DATA_TYPE: "mkdir",
-            path:
-          }.to_json
-        end
-      end
-
-      # Makes the API call to Globus to set permissions
-      # @param path [String] the directory on the globus endpoint
-      # @param id [String] globus identifier associated with the user_id email
-      # @param user_id [String] user_id, not email address
-      # @return [Faraday::Response]
-      def call_access(path:, id:, user_id:)
-        response = connection.post("#{endpoint}/access") do |req|
-          req.body = {
-            DATA_TYPE: "access",
-            principal_type: "identity",
-            principal: id,
-            path:,
-            permissions: "rw",
-            notify_email: "#{user_id}@stanford.edu"
-          }.to_json
-          req.headers["Content-Type"] = "application/json"
-        end
-        UnexpectedResponse.call(response) unless response.success?
-
-        response
-      end
-
       def objects
         # List files at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
-        response = connection.get("#{endpoint}/ls")
-        UnexpectedResponse.call(response) unless response.success?
-        JSON.parse(response.body)
+        response = connection.get("#{base_url}/ls")
+        return JSON.parse(response.body) if response.success?
+
+        UnexpectedResponse.call(response)
+      end
+
+      def base_url
+        "/v0.10/operation/endpoint/#{config.transfer_endpoint_id}"
       end
     end
   end
