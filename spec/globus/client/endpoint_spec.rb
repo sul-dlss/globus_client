@@ -21,43 +21,65 @@ RSpec.describe Globus::Client::Endpoint do
   end
 
   describe "#length" do
-    let(:list_response) do
-      {
-        DATA: [
-          {
-            DATA_TYPE: "file",
-            group: "globus",
-            last_modified: "2022-10-20 20:09:40+00:00",
-            link_group: nil,
-            link_last_modified: nil,
-            link_size: nil,
-            link_target: nil,
-            link_user: nil,
-            name: "read-test",
-            permissions: "0755",
-            size: 3,
-            type: "dir",
-            user: "globus"
-          }
-        ],
-        DATA_TYPE: "file_list",
-        absolute_path: "/",
-        endpoint: transfer_endpoint_id,
-        length: 1,
-        path: "/~/",
-        rename_supported: true,
-        symlink_supported: false,
-        total: 1
-      }
+    context "when endpoint ID is found" do
+      let(:list_response) do
+        {
+          DATA: [
+            {
+              DATA_TYPE: "file",
+              group: "globus",
+              last_modified: "2022-10-20 20:09:40+00:00",
+              link_group: nil,
+              link_last_modified: nil,
+              link_size: nil,
+              link_target: nil,
+              link_user: nil,
+              name: "read-test",
+              permissions: "0755",
+              size: 3,
+              type: "dir",
+              user: "globus"
+            }
+          ],
+          DATA_TYPE: "file_list",
+          absolute_path: "/",
+          endpoint: transfer_endpoint_id,
+          length: 1,
+          path: "/~/",
+          rename_supported: true,
+          symlink_supported: false,
+          total: 1
+        }
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls")
+          .to_return(status: 200, body: list_response.to_json)
+      end
+
+      it "returns the length" do
+        expect(endpoint.length).to eq 1
+      end
     end
 
-    before do
-      stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls")
-        .to_return(status: 200, body: list_response.to_json)
-    end
+    context "when endpoint ID is not found" do
+      let(:list_response) do
+        {
+          code: "ClientError.NotFound",
+          message: "#{transfer_endpoint_id} not found.",
+          request_id: "1234",
+          resource: "/operation/endpoint/an-endpoint-id/ls"
+        }
+      end
 
-    it "returns the length" do
-      expect(endpoint.length).to eq 1
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls")
+          .to_return(status: 404, body: list_response.to_json)
+      end
+
+      it "raises a ResourceNotFound exception" do
+        expect { endpoint.length }.to raise_error(Globus::Client::UnexpectedResponse::ResourceNotFound)
+      end
     end
   end
 
@@ -195,7 +217,7 @@ RSpec.describe Globus::Client::Endpoint do
           .to_return(status: 201, body: access_response.to_json)
       end
 
-      it "#set_permissions" do
+      it "does not raise an exception" do
         expect { endpoint.set_permissions }.not_to raise_error
       end
     end
@@ -228,7 +250,7 @@ RSpec.describe Globus::Client::Endpoint do
           .to_return(status: 400, body: access_response.to_json)
       end
 
-      it "#set_permissions" do
+      it "raises a BadRequestError" do
         expect { endpoint.set_permissions }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
       end
     end

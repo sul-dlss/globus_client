@@ -22,22 +22,18 @@ module Globus
 
       # Create a directory https://docs.globus.org/api/transfer/file_operations/#make_directory
       def mkdir
-        path = config.uploads_directory
-        dirs = [user_id, "work#{work_id}", "version#{work_version}"]
-
         # transfer API does not support recursive directory creation
-        dirs.each do |dir|
-          path = "#{path}#{dir}/"
+        paths.each do |path|
           response = call_mkdir(path)
+          next if response.success?
+
           # if directory already exists
           if response.status == 502
             error = JSON.parse(response.body)
             next if error["code"] == "ExternalError.MkdirFailedExists"
-
-            UnexpectedResponse.call(response)
-          else
-            UnexpectedResponse.call(response) unless response.success?
           end
+
+          UnexpectedResponse.call(response)
         end
       end
 
@@ -61,22 +57,33 @@ module Globus
         )
       end
 
+      # Builds up a path from a list of path elements. E.g., input would look like:
+      #     ["mjgiarlo", "work123", "version1"]
+      # And this method returns:
+      #     ["/uploads/mjgiarlo/", "/uploads/mjgiarlo/work123/", "/uploads/mjgiarlo/work123/version1/"]
+      def paths
+        path_segments.map.with_index do |_segment, index|
+          File.join(config.uploads_directory, path_segments.slice(..index)).concat("/")
+        end
+      end
+
+      def path_segments
+        [user_id, "work#{work_id}", "version#{work_version}"]
+      end
+
       def endpoint
         "/v0.10/operation/endpoint/#{config.transfer_endpoint_id}"
       end
 
       # @return [Faraday::Response]
       def call_mkdir(path)
-        response = connection.post("#{endpoint}/mkdir") do |req|
+        connection.post("#{endpoint}/mkdir") do |req|
           req.headers["Content-Type"] = "application/json"
           req.body = {
             DATA_TYPE: "mkdir",
             path:
           }.to_json
         end
-        UnexpectedResponse.call(response) unless response.success?
-
-        response
       end
 
       # Makes the API call to Globus to set permissions
