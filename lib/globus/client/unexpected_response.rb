@@ -39,8 +39,8 @@ module Globus
           raise ResourceNotFound, "Resource does not exist or is missing."
         when 409
           raise ConflictError,
-            'Request is blocked, disallowed, or not consistent with the state of the service,
-                 e.g. trying to cancel a task which has already completed?'
+            "Request is blocked, disallowed, or not consistent with the state of the service,
+                 e.g. trying to cancel a task which has already completed?"
         when 502
           raise EndpointError, "Other error with endpoint."
         when 503
