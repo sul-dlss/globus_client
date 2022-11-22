@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'byebug'
+
 module Globus
   class Client
     # The namespace for endpoint API operations
@@ -15,9 +17,12 @@ module Globus
         @work_version = work_version
       end
 
-      # NOTE: This is a temporary method to show parsing of data returned.
-      def length
+      def file_count
         objects["total"]
+      end
+
+      def total_size
+        files.sum { |file| file["size"] }
       end
 
       # Create a directory https://docs.globus.org/api/transfer/file_operations/#make_directory
@@ -101,7 +106,7 @@ module Globus
 
       def objects
         # List files at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
-        response = connection.get("#{transfer_path}/ls")
+        response = connection.get("#{transfer_path}/ls?path=#{paths.last}")
         return JSON.parse(response.body) if response.success?
 
         UnexpectedResponse.call(response)
@@ -113,6 +118,10 @@ module Globus
 
       def access_path
         "/v0.10/endpoint/#{config.transfer_endpoint_id}/access"
+      end
+
+      def files
+        objects["DATA"].select { |object| object["DATA_TYPE"] == 'file' }
       end
     end
   end
