@@ -24,7 +24,7 @@ module Globus
       def mkdir
         # transfer API does not support recursive directory creation
         paths.each do |path|
-          response = connection.post("#{base_url}/mkdir") do |req|
+          response = connection.post("#{transfer_path}/mkdir") do |req|
             req.headers["Content-Type"] = "application/json"
             req.body = {
               DATA_TYPE: "mkdir",
@@ -37,7 +37,7 @@ module Globus
           # Ignore error if directory already exists
           if response.status == 502
             error = JSON.parse(response.body)
-            next if error["code"] == "ExternalError.MkdirFailedExists"
+            next if error["code"] == "ExternalError.MkdirFailed.Exists"
           end
 
           UnexpectedResponse.call(response)
@@ -46,7 +46,7 @@ module Globus
 
       # Assign a user read/write permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
       def set_permissions
-        response = connection.post("#{base_url}/access") do |req|
+        response = connection.post(access_path) do |req|
           req.body = {
             DATA_TYPE: "access",
             principal_type: "identity",
@@ -59,6 +59,12 @@ module Globus
         end
 
         return response if response.success?
+
+        # Ignore error if permissions already set for identity
+        if response.status == 409
+          error = JSON.parse(response.body)
+          return if error["code"] == "Exists"
+        end
 
         UnexpectedResponse.call(response)
       end
@@ -95,14 +101,18 @@ module Globus
 
       def objects
         # List files at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
-        response = connection.get("#{base_url}/ls")
+        response = connection.get("#{transfer_path}/ls")
         return JSON.parse(response.body) if response.success?
 
         UnexpectedResponse.call(response)
       end
 
-      def base_url
+      def transfer_path
         "/v0.10/operation/endpoint/#{config.transfer_endpoint_id}"
+      end
+
+      def access_path
+        "/v0.10/endpoint/#{config.transfer_endpoint_id}/access"
       end
     end
   end
