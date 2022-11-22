@@ -20,7 +20,7 @@ RSpec.describe Globus::Client::Endpoint do
     }
   end
 
-  describe "#length" do
+  describe "#file_count" do
     context "when endpoint ID is found" do
       let(:list_response) do
         {
@@ -53,12 +53,12 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls")
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
           .to_return(status: 200, body: list_response.to_json)
       end
 
-      it "returns the length" do
-        expect(endpoint.length).to eq 1
+      it "returns the length of the file_list" do
+        expect(endpoint.file_count).to eq 1
       end
     end
 
@@ -73,12 +73,90 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls")
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
           .to_return(status: 404, body: list_response.to_json)
       end
 
       it "raises a ResourceNotFound exception" do
-        expect { endpoint.length }.to raise_error(Globus::Client::UnexpectedResponse::ResourceNotFound)
+        expect { endpoint.file_count }.to raise_error(Globus::Client::UnexpectedResponse::ResourceNotFound)
+      end
+    end
+  end
+
+  describe "#total_size" do
+    context "when endpoint ID is found" do
+      let(:list_response) do
+        {
+          DATA: [
+            {
+              DATA_TYPE: "file",
+              group: "globus",
+              last_modified: "2022-10-20 20:09:40+00:00",
+              link_group: nil,
+              link_last_modified: nil,
+              link_size: nil,
+              link_target: nil,
+              link_user: nil,
+              name: "read-test",
+              permissions: "0755",
+              size: 3,
+              type: "dir",
+              user: "globus"
+            },
+            {
+              DATA_TYPE: "file",
+              group: "globus",
+              last_modified: "2022-10-21 20:09:40+00:00",
+              link_group: nil,
+              link_last_modified: nil,
+              link_size: nil,
+              link_target: nil,
+              link_user: nil,
+              name: "read-test-2",
+              permissions: "0755",
+              size: 30,
+              type: "dir",
+              user: "globus"
+            }
+          ],
+          DATA_TYPE: "file_list",
+          absolute_path: "/",
+          endpoint: transfer_endpoint_id,
+          length: 2,
+          path: "/~/",
+          rename_supported: true,
+          symlink_supported: false,
+          total: 1
+        }
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
+          .to_return(status: 200, body: list_response.to_json)
+      end
+
+      it "returns the length of the file_list" do
+        expect(endpoint.total_size).to eq 33
+      end
+    end
+
+    context "when endpoint ID is not found" do
+      let(:list_response) do
+        {
+          code: "ClientError.NotFound",
+          message: "#{transfer_endpoint_id} not found.",
+          request_id: "1234",
+          resource: "/operation/endpoint/an-endpoint-id/ls"
+        }
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
+          .to_return(status: 404, body: list_response.to_json)
+      end
+
+      it "raises a ResourceNotFound exception" do
+        expect { endpoint.total_size }.to raise_error(Globus::Client::UnexpectedResponse::ResourceNotFound)
       end
     end
   end
