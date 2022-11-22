@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'byebug'
-
 module Globus
   class Client
     # The namespace for endpoint API operations
@@ -121,7 +119,7 @@ module Globus
       end
 
       def files
-        objects["DATA"].select { |object| object["DATA_TYPE"] == 'file' }
+        objects["DATA"].select { |object| object["DATA_TYPE"] == "file" }
       end
     end
   end

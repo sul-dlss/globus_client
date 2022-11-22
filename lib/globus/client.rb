@@ -57,13 +57,8 @@ module Globus
 
     def file_count(...)
       endpoint = Globus::Client::Endpoint.new(config, ...)
-      endpoint.length
+      endpoint.file_count
     end
-
-    # def files(...)
-    #   endpoint = Globus::Client::Endpoint.new(config, ...)
-    #   endpoint.files
-    # end
 
     def total_size(...)
       endpoint = Globus::Client::Endpoint.new(config, ...)
