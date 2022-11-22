@@ -190,17 +190,6 @@ RSpec.describe Globus::Client::Endpoint do
     end
 
     context "when setting permissions on a directory" do
-      let(:identity_response) do
-        {
-          identities: [{
-            name: "Jane Tester",
-            email: "example@stanford.edu",
-            id: "12345abc",
-            username: "example@stanford.edu",
-            status: "used"
-          }]
-        }
-      end
       let(:access_response) do
         {
           code: "Created",
@@ -213,7 +202,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/access")
+        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 201, body: access_response.to_json)
       end
 
@@ -222,18 +211,27 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when setting permissions on an invalid directory" do
-      let(:identity_response) do
+    context "when re-setting permissions on a directory" do
+      let(:access_response) do
         {
-          identities: [{
-            name: "Jane Tester",
-            email: "example@stanford.edu",
-            id: "12345abc",
-            username: "example@stanford.edu",
-            status: "used"
-          }]
+          code: "Exists",
+          message: "This folder is already shared with this identity. If you would like to change the read/write access level, please delete this permission and then add a new permission with the desired access level.",
+          request_id: "abc123",
+          resource: "/endpoint/epname/access"
         }
       end
+
+      before do
+        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
+          .to_return(status: 409, body: access_response.to_json)
+      end
+
+      it "does not raise an exception" do
+        expect { endpoint.set_permissions }.not_to raise_error
+      end
+    end
+
+    context "when setting permissions on an invalid directory" do
       let(:access_response) do
         {
           code: "InvalidPath",
@@ -246,7 +244,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/access")
+        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 400, body: access_response.to_json)
       end
 
