@@ -17,15 +17,10 @@ RSpec.describe Globus::Client do
   let(:client_secret) { "dummy_secret" }
   let(:transfer_endpoint_id) { "NOT_A_REAL_ENDPOINT" }
   let(:uploads_directory) { "/uploads/" }
-  let(:fake_endpoint) { instance_double(described_class::Endpoint, mkdir: nil, set_permissions: nil, file_count: 3, total_size: 3333) }
-  let(:user_id) { "mjgiarlo" }
-  let(:work_id) { 1234 }
-  let(:work_version) { 2 }
 
   before do
     stub_request(:post, "#{described_class.default_auth_url}/v2/oauth2/token")
       .to_return(status: 200, body: "{}")
-    allow(described_class::Endpoint).to receive(:new).and_return(fake_endpoint)
   end
 
   it "has a version number" do
@@ -88,45 +83,68 @@ RSpec.describe Globus::Client do
     end
   end
 
-  describe ".mkdir" do
-    it "invokes mkdir on the Endpoint class, injecting config" do
-      described_class.mkdir(user_id:, work_id:, work_version:)
-      expect(fake_endpoint).to have_received(:mkdir).once
+  describe "public class methods" do
+    let(:fake_instance) do
+      instance_double(
+        described_class,
+        mkdir: nil,
+        file_count: nil,
+        total_size: nil
+      )
+    end
+
+    before do
+      allow(described_class).to receive(:instance).and_return(fake_instance)
+    end
+
+    describe ".mkdir" do
+      it "invokes mkdir on the Endpoint class, injecting config" do
+        described_class.mkdir
+        expect(fake_instance).to have_received(:mkdir).once
+      end
+    end
+
+    describe ".file_count" do
+      it "invokes file_count on the Endpoint class, injecting config" do
+        described_class.file_count
+        expect(fake_instance).to have_received(:file_count).once
+      end
+    end
+
+    describe ".total_size" do
+      it "invokes total_size on the Endpoint class, injecting config" do
+        described_class.total_size
+        expect(fake_instance).to have_received(:total_size).once
+      end
     end
   end
 
-  describe ".file_count" do
-    it "invokes file_count on the Endpoint class, injecting config" do
-      described_class.file_count(user_id:, work_id:, work_version:)
-      expect(fake_endpoint).to have_received(:file_count).once
-    end
-  end
+  describe "public instance methods" do
+    let(:fake_endpoint) { instance_double(described_class::Endpoint, mkdir: nil, set_permissions: nil, file_count: 3, total_size: 3333) }
 
-  describe ".total_size" do
-    it "invokes total_size on the Endpoint class, injecting config" do
-      described_class.total_size(user_id:, work_id:, work_version:)
-      expect(fake_endpoint).to have_received(:total_size).once
+    before do
+      allow(described_class::Endpoint).to receive(:new).and_return(fake_endpoint)
     end
-  end
 
-  describe "#mkdir" do
-    it "invokes mkdir on the Endpoint class, injecting config" do
-      client.mkdir(user_id:, work_id:, work_version:)
-      expect(fake_endpoint).to have_received(:mkdir).once
+    describe "#mkdir" do
+      it "invokes mkdir on the Endpoint class, injecting config" do
+        client.mkdir
+        expect(fake_endpoint).to have_received(:mkdir).once
+      end
     end
-  end
 
-  describe "#file_count" do
-    it "returns the number of files" do
-      client.file_count(user_id:, work_id:, work_version:)
-      expect(fake_endpoint).to have_received(:file_count).once
+    describe "#file_count" do
+      it "returns the number of files" do
+        client.file_count
+        expect(fake_endpoint).to have_received(:file_count).once
+      end
     end
-  end
 
-  describe "#total_size" do
-    it "returns the size of all files for the path" do
-      client.total_size(user_id:, work_id:, work_version:)
-      expect(fake_endpoint).to have_received(:total_size).once
+    describe "#total_size" do
+      it "returns the size of all files for the path" do
+        client.total_size
+        expect(fake_endpoint).to have_received(:total_size).once
+      end
     end
   end
 end
