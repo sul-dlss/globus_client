@@ -83,7 +83,7 @@ RSpec.describe Globus::Client do
     end
   end
 
-  [:file_count, :mkdir, :total_size].each do |method|
+  [:disallow_writes, :file_count, :mkdir, :total_size].each do |method|
     describe ".#{method}" do
       let(:fake_instance) { instance_double(described_class) }
 

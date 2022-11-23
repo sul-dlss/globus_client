@@ -259,15 +259,13 @@ RSpec.describe Globus::Client::Endpoint do
   end
 
   describe "#allow_writes" do
-    let(:fake_identity) do
-      instance_double(Globus::Client::Identity, get_identity_id: "example")
-    end
+    let(:fake_identity) { instance_double(Globus::Client::Identity, get_identity_id: "example") }
 
     before do
       allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
     end
 
-    context "when setting permissions on a directory" do
+    context "when allow writes to a directory" do
       let(:access_response) do
         {
           code: "Created",
@@ -289,7 +287,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when re-setting permissions on a directory" do
+    context "when re-allowing writes to on a directory" do
       let(:access_response) do
         {
           code: "Exists",
@@ -309,7 +307,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when setting permissions on an invalid directory" do
+    context "when allowing writes to an invalid directory" do
       let(:access_response) do
         {
           code: "InvalidPath",
@@ -328,6 +326,78 @@ RSpec.describe Globus::Client::Endpoint do
 
       it "raises a BadRequestError" do
         expect { endpoint.allow_writes }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+      end
+    end
+  end
+
+  describe "#disallow_writes" do
+    let(:fake_identity) { instance_double(Globus::Client::Identity, get_identity_id: "example") }
+
+    before do
+      allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
+    end
+
+    context "when disallowing writes to a directory" do
+      let(:access_response) do
+        {
+          code: "Created",
+          resource: "/endpoint/epname/access",
+          DATA_TYPE: "access_create_result",
+          request_id: "abc123",
+          access_id: 12_345,
+          message: "Access rule created successfully."
+        }
+      end
+
+      before do
+        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
+          .to_return(status: 201, body: access_response.to_json)
+      end
+
+      it "does not raise an exception" do
+        expect { endpoint.disallow_writes }.not_to raise_error
+      end
+    end
+
+    context "when re-disallowing writes to a directory" do
+      let(:access_response) do
+        {
+          code: "Exists",
+          message: "This folder is already shared with this identity. If you would like to change the read/write access level, please delete this permission and then add a new permission with the desired access level.",
+          request_id: "abc123",
+          resource: "/endpoint/epname/access"
+        }
+      end
+
+      before do
+        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
+          .to_return(status: 409, body: access_response.to_json)
+      end
+
+      it "does not raise an exception" do
+        expect { endpoint.disallow_writes }.not_to raise_error
+      end
+    end
+
+    context "when disallowing writes to an invalid directory" do
+      let(:access_response) do
+        {
+          code: "InvalidPath",
+          resource: "/endpoint/epname/access",
+          DATA_TYPE: "access_create_result",
+          request_id: "abc123",
+          access_id: 12_345,
+          message: "Invalid Path"
+        }
+      end
+
+      before do
+        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
+          .to_return(status: 400, body: access_response.to_json)
+      end
+
+      it "raises a BadRequestError" do
+        expect { endpoint.disallow_writes }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
       end
     end
   end

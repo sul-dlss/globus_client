@@ -36,7 +36,7 @@ module Globus
         self
       end
 
-      delegate :config, :file_count, :mkdir, :total_size, to: :instance
+      delegate :config, :disallow_writes, :file_count, :mkdir, :total_size, to: :instance
 
       def default_transfer_url
         "https://transfer.api.globusonline.org"
@@ -53,6 +53,11 @@ module Globus
       endpoint = Globus::Client::Endpoint.new(config, ...)
       endpoint.mkdir
       endpoint.allow_writes
+    end
+
+    def disallow_writes(...)
+      endpoint = Globus::Client::Endpoint.new(config, ...)
+      endpoint.disallow_writes
     end
 
     def file_count(...)
