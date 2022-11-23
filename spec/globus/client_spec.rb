@@ -83,67 +83,32 @@ RSpec.describe Globus::Client do
     end
   end
 
-  describe "public class methods" do
-    let(:fake_instance) do
-      instance_double(
-        described_class,
-        mkdir: nil,
-        file_count: nil,
-        total_size: nil
-      )
-    end
+  [:disallow_writes, :file_count, :mkdir, :total_size].each do |method|
+    describe ".#{method}" do
+      let(:fake_instance) { instance_double(described_class) }
 
-    before do
-      allow(described_class).to receive(:instance).and_return(fake_instance)
-    end
+      before do
+        allow(described_class).to receive(:instance).and_return(fake_instance)
+        allow(fake_instance).to receive(method)
+      end
 
-    describe ".mkdir" do
-      it "invokes mkdir on the Endpoint class, injecting config" do
-        described_class.mkdir
-        expect(fake_instance).to have_received(:mkdir).once
+      it "invokes instance##{method}" do
+        described_class.public_send(method)
+        expect(fake_instance).to have_received(method).once
       end
     end
 
-    describe ".file_count" do
-      it "invokes file_count on the Endpoint class, injecting config" do
-        described_class.file_count
-        expect(fake_instance).to have_received(:file_count).once
+    describe "##{method}" do
+      let(:fake_endpoint) { instance_double(described_class::Endpoint, allow_writes: nil) }
+
+      before do
+        allow(described_class::Endpoint).to receive(:new).and_return(fake_endpoint)
+        allow(fake_endpoint).to receive(method)
       end
-    end
 
-    describe ".total_size" do
-      it "invokes total_size on the Endpoint class, injecting config" do
-        described_class.total_size
-        expect(fake_instance).to have_received(:total_size).once
-      end
-    end
-  end
-
-  describe "public instance methods" do
-    let(:fake_endpoint) { instance_double(described_class::Endpoint, mkdir: nil, set_permissions: nil, file_count: 3, total_size: 3333) }
-
-    before do
-      allow(described_class::Endpoint).to receive(:new).and_return(fake_endpoint)
-    end
-
-    describe "#mkdir" do
-      it "invokes mkdir on the Endpoint class, injecting config" do
-        client.mkdir
-        expect(fake_endpoint).to have_received(:mkdir).once
-      end
-    end
-
-    describe "#file_count" do
-      it "returns the number of files" do
-        client.file_count
-        expect(fake_endpoint).to have_received(:file_count).once
-      end
-    end
-
-    describe "#total_size" do
-      it "returns the size of all files for the path" do
-        client.total_size
-        expect(fake_endpoint).to have_received(:total_size).once
+      it "invokes Endpoint##{method}" do
+        client.public_send(method)
+        expect(fake_endpoint).to have_received(method).once
       end
     end
   end

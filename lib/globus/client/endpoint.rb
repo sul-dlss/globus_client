@@ -48,28 +48,13 @@ module Globus
       end
 
       # Assign a user read/write permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
-      def set_permissions
-        response = connection.post(access_path) do |req|
-          req.body = {
-            DATA_TYPE: "access",
-            principal_type: "identity",
-            principal: identity.get_identity_id(user_id),
-            path: paths.last,
-            permissions: "rw",
-            notify_email: "#{user_id}@stanford.edu"
-          }.to_json
-          req.headers["Content-Type"] = "application/json"
-        end
+      def allow_writes
+        access_request(permissions: "rw")
+      end
 
-        return response if response.success?
-
-        # Ignore error if permissions already set for identity
-        if response.status == 409
-          error = JSON.parse(response.body)
-          return if error["code"] == "Exists"
-        end
-
-        UnexpectedResponse.call(response)
+      # Assign a user read-only permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
+      def disallow_writes
+        access_request(permissions: "r")
       end
 
       private
@@ -84,8 +69,8 @@ module Globus
         )
       end
 
-      def identity
-        Globus::Client::Identity.new(config)
+      def user
+        Identity.new(config).get_identity_id(user_id)
       end
 
       # Builds up a path from a list of path elements. E.g., input would look like:
@@ -98,16 +83,67 @@ module Globus
         end
       end
 
+      # @see #paths
+      def full_path
+        paths.last
+      end
+
       def path_segments
         [user_id, "work#{work_id}", "version#{work_version}"]
       end
 
       def objects
         # List files at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
-        response = connection.get("#{transfer_path}/ls?path=#{paths.last}")
+        response = connection.get("#{transfer_path}/ls?path=#{full_path}")
         return JSON.parse(response.body) if response.success?
 
         UnexpectedResponse.call(response)
+      end
+
+      def files
+        objects["DATA"].select { |object| object["DATA_TYPE"] == "file" }
+      end
+
+      def access_request(permissions:)
+        response = if access_rule_id
+          connection.put("#{access_path}/#{access_rule_id}") do |req|
+            req.body = {
+              DATA_TYPE: "access",
+              permissions:
+            }.to_json
+            req.headers["Content-Type"] = "application/json"
+          end
+        else
+          connection.post(access_path) do |req|
+            req.body = {
+              DATA_TYPE: "access",
+              principal_type: "identity",
+              principal: user,
+              path: full_path,
+              permissions:,
+              notify_email: "#{user_id}@stanford.edu"
+            }.to_json
+            req.headers["Content-Type"] = "application/json"
+          end
+        end
+
+        return response if response.success?
+
+        UnexpectedResponse.call(response)
+      end
+
+      def access_rule
+        response = connection.get(access_list_path) do |req|
+          req.headers["Content-Type"] = "application/json"
+        end
+
+        JSON
+          .parse(response.body)["DATA"]
+          .find { |acl| acl["path"] == full_path }
+      end
+
+      def access_rule_id
+        access_rule&.fetch("id")
       end
 
       def transfer_path
@@ -118,8 +154,8 @@ module Globus
         "/v0.10/endpoint/#{config.transfer_endpoint_id}/access"
       end
 
-      def files
-        objects["DATA"].select { |object| object["DATA_TYPE"] == "file" }
+      def access_list_path
+        "/v0.10/endpoint/#{config.transfer_endpoint_id}/access_list"
       end
     end
   end
