@@ -258,7 +258,7 @@ RSpec.describe Globus::Client::Endpoint do
     end
   end
 
-  describe "#set_permissions" do
+  describe "#allow_writes" do
     let(:fake_identity) do
       instance_double(Globus::Client::Identity, get_identity_id: "example")
     end
@@ -285,7 +285,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "does not raise an exception" do
-        expect { endpoint.set_permissions }.not_to raise_error
+        expect { endpoint.allow_writes }.not_to raise_error
       end
     end
 
@@ -305,7 +305,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "does not raise an exception" do
-        expect { endpoint.set_permissions }.not_to raise_error
+        expect { endpoint.allow_writes }.not_to raise_error
       end
     end
 
@@ -327,7 +327,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises a BadRequestError" do
-        expect { endpoint.set_permissions }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+        expect { endpoint.allow_writes }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
       end
     end
   end

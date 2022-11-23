@@ -48,7 +48,7 @@ module Globus
       end
 
       # Assign a user read/write permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
-      def set_permissions
+      def allow_writes
         response = connection.post(access_path) do |req|
           req.body = {
             DATA_TYPE: "access",

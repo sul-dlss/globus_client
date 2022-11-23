@@ -120,7 +120,7 @@ RSpec.describe Globus::Client do
   end
 
   describe "public instance methods" do
-    let(:fake_endpoint) { instance_double(described_class::Endpoint, mkdir: nil, set_permissions: nil, file_count: 3, total_size: 3333) }
+    let(:fake_endpoint) { instance_double(described_class::Endpoint, mkdir: nil, allow_writes: nil, file_count: 3, total_size: 3333) }
 
     before do
       allow(described_class::Endpoint).to receive(:new).and_return(fake_endpoint)

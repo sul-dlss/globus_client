@@ -52,7 +52,7 @@ module Globus
     def mkdir(...)
       endpoint = Globus::Client::Endpoint.new(config, ...)
       endpoint.mkdir
-      endpoint.set_permissions
+      endpoint.allow_writes
     end
 
     def file_count(...)
