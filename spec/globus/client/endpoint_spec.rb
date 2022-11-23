@@ -265,7 +265,7 @@ RSpec.describe Globus::Client::Endpoint do
       allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
     end
 
-    context "when allow writes to a directory" do
+    context "when no access rules are present for a directory" do
       let(:access_response) do
         {
           code: "Created",
@@ -276,8 +276,29 @@ RSpec.describe Globus::Client::Endpoint do
           message: "Access rule created successfully."
         }
       end
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
+              path: "/foo/bar/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
 
       before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
         stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 201, body: access_response.to_json)
       end
@@ -287,19 +308,42 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when re-allowing writes to on a directory" do
+    context "when access rules are present for a directory" do
       let(:access_response) do
         {
-          code: "Exists",
-          message: "This folder is already shared with this identity. If you would like to change the read/write access level, please delete this permission and then add a new permission with the desired access level.",
+          code: "Updated",
+          message: "Access rule '123' permissions updated successfully",
           request_id: "abc123",
-          resource: "/endpoint/epname/access"
+          resource: "/endpoint/epname/access",
+          DATA_TYPE: "result"
         }
       end
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: access_rule_id,
+              path: "/uploads/example/work123/version1/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
+      let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
-          .to_return(status: 409, body: access_response.to_json)
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
+        stub_request(:put, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+          .to_return(status: 200, body: access_response.to_json)
       end
 
       it "does not raise an exception" do
@@ -307,7 +351,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when allowing writes to an invalid directory" do
+    context "when directory is invalid" do
       let(:access_response) do
         {
           code: "InvalidPath",
@@ -318,8 +362,29 @@ RSpec.describe Globus::Client::Endpoint do
           message: "Invalid Path"
         }
       end
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
+              path: "/foo/bar/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
 
       before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
         stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 400, body: access_response.to_json)
       end
@@ -337,7 +402,7 @@ RSpec.describe Globus::Client::Endpoint do
       allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
     end
 
-    context "when disallowing writes to a directory" do
+    context "when no access rules are present for a directory" do
       let(:access_response) do
         {
           code: "Created",
@@ -348,8 +413,29 @@ RSpec.describe Globus::Client::Endpoint do
           message: "Access rule created successfully."
         }
       end
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
+              path: "/foo/bar/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
 
       before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
         stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 201, body: access_response.to_json)
       end
@@ -359,19 +445,42 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when re-disallowing writes to a directory" do
+    context "when access rules are present for a directory" do
       let(:access_response) do
         {
-          code: "Exists",
-          message: "This folder is already shared with this identity. If you would like to change the read/write access level, please delete this permission and then add a new permission with the desired access level.",
+          code: "Updated",
+          message: "Access rule '123' permissions updated successfully",
           request_id: "abc123",
-          resource: "/endpoint/epname/access"
+          resource: "/endpoint/epname/access",
+          DATA_TYPE: "result"
         }
       end
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: access_rule_id,
+              path: "/uploads/example/work123/version1/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
+      let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
-          .to_return(status: 409, body: access_response.to_json)
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
+        stub_request(:put, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+          .to_return(status: 200, body: access_response.to_json)
       end
 
       it "does not raise an exception" do
@@ -379,7 +488,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
     end
 
-    context "when disallowing writes to an invalid directory" do
+    context "when directory is invalid" do
       let(:access_response) do
         {
           code: "InvalidPath",
@@ -390,8 +499,29 @@ RSpec.describe Globus::Client::Endpoint do
           message: "Invalid Path"
         }
       end
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
+              path: "/foo/bar/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
 
       before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
         stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 400, body: access_response.to_json)
       end

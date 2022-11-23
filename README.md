@@ -58,11 +58,25 @@ end
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run
-`rake spec` to run the tests. You can also run `bin/console` for an interactive
-prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+### Integration Testing
+
+To test that the gem works against the Globus APIs, run `api_test.rb` via:
+
+```shell
+# the three args below are a user ID, a work ID, and a work version
+$ GLOBUS_CLIENT_ID=vault GLOBUS_CLIENT_SECRET=from_vault GLOBUS_ENDPOINT=from_shared_configs GLOBUS_UPLOADS_DIRECTORY=from_shared_configs ./api_test.rb mjgiarlo 987 1
+
+Initial directory permissions: rw
+Number of files in directory: 2
+Total size of files in directory: 66669
+Final directory permissions: r
+```
+
+Inspect the output and compare it to what you see in Globus Personal Connect to determine if behavior is correct.
 
 ## Contributing
 
