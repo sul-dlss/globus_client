@@ -67,8 +67,13 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 To test that the gem works against the Globus APIs, run `api_test.rb` via:
 
 ```shell
-# the three args below are a user ID, a work ID, and a work version
-$ GLOBUS_CLIENT_ID=vault GLOBUS_CLIENT_SECRET=from_vault GLOBUS_ENDPOINT=from_shared_configs GLOBUS_UPLOADS_DIRECTORY=from_shared_configs ./api_test.rb mjgiarlo 987 1
+# NOTE: This is bash syntax, YMMV
+$ export GLOBUS_CLIENT_ID=$(vault kv get -field=content puppet/application/sdr/globus/{prod|qa|stage}/client_id)
+$ export GLOBUS_CLIENT_SECRET=$(vault kv get -field=content puppet/application/sdr/globus/{prod|qa|stage}/client_secret)
+$ export GLOBUS_ENDPOINT=$(vault kv get -field=content puppet/application/sdr/globus/{prod|qa|stage}/endpoint_uuid)
+$ export GLOBUS_UPLOADS_DIRECTORY=from_shared_configs
+# NOTE: The three args below are a user ID, a work ID, and a work version
+$ ./api_test.rb mjgiarlo 987 1
 
 Initial directory permissions: rw
 Number of files in directory: 2
