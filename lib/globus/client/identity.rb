@@ -18,6 +18,13 @@ module Globus
         extract_id(data)
       end
 
+      def exists?(sunetid)
+        get_identity_id(sunetid)
+        true
+      rescue
+        false
+      end
+
       private
 
       attr_reader :config

@@ -83,6 +83,34 @@ RSpec.describe Globus::Client do
     end
   end
 
+  describe ".user_exists?" do
+    let(:fake_instance) { instance_double(described_class) }
+
+    before do
+      allow(described_class).to receive(:instance).and_return(fake_instance)
+      allow(fake_instance).to receive(:user_exists?)
+    end
+
+    it "invokes instance#user_exists?" do
+      described_class.user_exists?
+      expect(fake_instance).to have_received(:user_exists?).once
+    end
+  end
+
+  describe "#exists?" do
+    let(:fake_endpoint) { instance_double(described_class::Identity, exists?: nil) }
+
+    before do
+      allow(described_class::Identity).to receive(:new).and_return(fake_endpoint)
+      allow(fake_endpoint).to receive(:exists?)
+    end
+
+    it "invokes Identity#exists?" do
+      client.user_exists?(sunetid: "bogus")
+      expect(fake_endpoint).to have_received(:exists?).once
+    end
+  end
+
   [:disallow_writes, :file_count, :mkdir, :total_size].each do |method|
     describe ".#{method}" do
       let(:fake_instance) { instance_double(described_class) }

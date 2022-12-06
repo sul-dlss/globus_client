@@ -32,6 +32,8 @@ client = Globus::Client.configure(
   transfer_endpoint_id: Settings.globus.transfer_endpoint_id
 )
 client.mkdir(user_id: 'mjgiarlo', work_id: 1234, work_version: 1)
+
+result = client.user_exists?('mjgiarlo')
 ```
 
 You can also invoke methods directly on the client class, which is useful in a
