@@ -22,7 +22,7 @@ class GlobusClient
     # @param auth_url [String] the authentication API URL
     def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:, transfer_url: default_transfer_url, auth_url: default_auth_url)
       instance.config = OpenStruct.new(
-        token: GlobusClient::Authenticator.token(client_id, client_secret, auth_url),
+        token: Authenticator.token(client_id, client_secret, auth_url),
         uploads_directory:,
         transfer_endpoint_id:,
         transfer_url:,
@@ -46,28 +46,28 @@ class GlobusClient
   attr_accessor :config
 
   def mkdir(...)
-    endpoint = GlobusClient::Endpoint.new(config, ...)
+    endpoint = Endpoint.new(config, ...)
     endpoint.mkdir
     endpoint.allow_writes
   end
 
   def disallow_writes(...)
-    endpoint = GlobusClient::Endpoint.new(config, ...)
+    endpoint = Endpoint.new(config, ...)
     endpoint.disallow_writes
   end
 
   def file_count(...)
-    endpoint = GlobusClient::Endpoint.new(config, ...)
+    endpoint = Endpoint.new(config, ...)
     endpoint.file_count
   end
 
   def total_size(...)
-    endpoint = GlobusClient::Endpoint.new(config, ...)
+    endpoint = Endpoint.new(config, ...)
     endpoint.total_size
   end
 
   def user_exists?(...)
-    identity = GlobusClient::Identity.new(config)
+    identity = Identity.new(config)
     identity.exists?(...)
   end
 end
