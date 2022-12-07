@@ -43,8 +43,16 @@ RSpec.describe Globus::Client::Identity do
         .to_return(status: 200, body: identity_response.to_json)
     end
 
-    it "returns the globus user ID" do
-      expect(identity.get_identity_id(sunetid)).to eq "12345abc"
+    describe "#get_identity_id" do
+      it "returns the globus user ID" do
+        expect(identity.get_identity_id(sunetid)).to eq "12345abc"
+      end
+    end
+
+    describe "#exists?" do
+      it "indicates that the user exists" do
+        expect(identity.exists?(sunetid)).to be true
+      end
     end
   end
 
@@ -72,8 +80,16 @@ RSpec.describe Globus::Client::Identity do
         .to_return(status: 200, body: identity_response.to_json)
     end
 
-    it "raises an error" do
-      expect { identity.get_identity_id(sunetid) }.to raise_error(RuntimeError, /No matching active Globus user found/)
+    describe "#get_identity_id" do
+      it "raises an error" do
+        expect { identity.get_identity_id(sunetid) }.to raise_error(RuntimeError, /No matching active Globus user found/)
+      end
+    end
+
+    describe "#exists?" do
+      it "indicates that the user does not exist" do
+        expect(identity.exists?(sunetid)).to be false
+      end
     end
   end
 
