@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Globus::Client::Identity do
+RSpec.describe GlobusClient::Identity do
   subject(:identity) { described_class.new(config) }
 
   let(:auth_url) { "https://auth.example.org" }
@@ -118,7 +118,7 @@ RSpec.describe Globus::Client::Identity do
     end
 
     it "raises a ForbiddenError" do
-      expect { identity.get_identity_id(sunetid) }.to raise_error(Globus::Client::UnexpectedResponse::ForbiddenError)
+      expect { identity.get_identity_id(sunetid) }.to raise_error(GlobusClient::UnexpectedResponse::ForbiddenError)
     end
   end
 
@@ -143,7 +143,7 @@ RSpec.describe Globus::Client::Identity do
     end
 
     it "raises an UnauthorizedError" do
-      expect { identity.get_identity_id(sunetid) }.to raise_error(Globus::Client::UnexpectedResponse::UnauthorizedError)
+      expect { identity.get_identity_id(sunetid) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
     end
   end
 end

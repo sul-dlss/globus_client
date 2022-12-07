@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Globus::Client::Endpoint do
+RSpec.describe GlobusClient::Endpoint do
   subject(:endpoint) { described_class.new(config, user_id:, work_id:, work_version:) }
 
   let(:config) { OpenStruct.new(uploads_directory:, transfer_url:, transfer_endpoint_id:) }
@@ -78,7 +78,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises a ResourceNotFound exception" do
-        expect { endpoint.file_count }.to raise_error(Globus::Client::UnexpectedResponse::ResourceNotFound)
+        expect { endpoint.file_count }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
       end
     end
   end
@@ -156,7 +156,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises a ResourceNotFound exception" do
-        expect { endpoint.total_size }.to raise_error(Globus::Client::UnexpectedResponse::ResourceNotFound)
+        expect { endpoint.total_size }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
       end
     end
   end
@@ -242,7 +242,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises an EndpointError" do
-        expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::EndpointError)
+        expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::EndpointError)
       end
     end
 
@@ -253,16 +253,16 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises ServiceUnavailable" do
-        expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::ServiceUnavailable)
+        expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::ServiceUnavailable)
       end
     end
   end
 
   describe "#allow_writes" do
-    let(:fake_identity) { instance_double(Globus::Client::Identity, get_identity_id: "example") }
+    let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: "example") }
 
     before do
-      allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
+      allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
     end
 
     context "when no access rules are present for a directory" do
@@ -390,16 +390,16 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises a BadRequestError" do
-        expect { endpoint.allow_writes }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+        expect { endpoint.allow_writes }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
       end
     end
   end
 
   describe "#disallow_writes" do
-    let(:fake_identity) { instance_double(Globus::Client::Identity, get_identity_id: "example") }
+    let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: "example") }
 
     before do
-      allow(Globus::Client::Identity).to receive(:new).and_return(fake_identity)
+      allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
     end
 
     context "when no access rules are present for a directory" do
@@ -527,7 +527,7 @@ RSpec.describe Globus::Client::Endpoint do
       end
 
       it "raises a BadRequestError" do
-        expect { endpoint.disallow_writes }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+        expect { endpoint.disallow_writes }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
       end
     end
   end
@@ -547,7 +547,7 @@ RSpec.describe Globus::Client::Endpoint do
     end
 
     it "raises a BadRequestError" do
-      expect { endpoint.mkdir }.to raise_error(Globus::Client::UnexpectedResponse::BadRequestError)
+      expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
     end
   end
 

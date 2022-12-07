@@ -4,7 +4,7 @@
 require "bundler/setup"
 require "globus_client"
 
-Globus::Client.configure(
+GlobusClient.configure(
   client_id: ENV["GLOBUS_CLIENT_ID"],
   client_secret: ENV["GLOBUS_CLIENT_SECRET"],
   uploads_directory: ENV["GLOBUS_UPLOADS_DIRECTORY"],
@@ -14,21 +14,21 @@ Globus::Client.configure(
 user_id, work_id, work_version = *ARGV
 
 # Test public API methods here.
-Globus::Client.mkdir(user_id:, work_id:, work_version:)
+GlobusClient.mkdir(user_id:, work_id:, work_version:)
 
-user_exists = Globus::Client.user_exists?(user_id)
-
-# Not part of the public API but this allows us to test access changes
-before_permissions = Globus::Client::Endpoint.new(Globus::Client.config, user_id: user_id, work_id: work_id, work_version: work_version).send(:access_rule)["permissions"]
-
-files_count = Globus::Client.file_count(user_id:, work_id:, work_version:)
-
-total_size = Globus::Client.total_size(user_id:, work_id:, work_version:)
-
-Globus::Client.disallow_writes(user_id:, work_id:, work_version:)
+user_exists = GlobusClient.user_exists?(user_id)
 
 # Not part of the public API but this allows us to test access changes
-after_permissions = Globus::Client::Endpoint.new(Globus::Client.config, user_id: user_id, work_id: work_id, work_version: work_version).send(:access_rule)["permissions"]
+before_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id: user_id, work_id: work_id, work_version: work_version).send(:access_rule)["permissions"]
+
+files_count = GlobusClient.file_count(user_id:, work_id:, work_version:)
+
+total_size = GlobusClient.total_size(user_id:, work_id:, work_version:)
+
+GlobusClient.disallow_writes(user_id:, work_id:, work_version:)
+
+# Not part of the public API but this allows us to test access changes
+after_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id: user_id, work_id: work_id, work_version: work_version).send(:access_rule)["permissions"]
 
 puts "User #{user_id} exists: #{user_exists}"
 puts "Initial directory permissions: #{before_permissions}"

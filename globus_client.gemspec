@@ -2,11 +2,11 @@
 
 lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "globus/client/version"
+require "globus_client/version"
 
 Gem::Specification.new do |spec|
   spec.name = "globus_client"
-  spec.version = Globus::Client::VERSION
+  spec.version = GlobusClient::VERSION
   spec.authors = ["Aaron Collier", "Laura Wrubel", "Mike Giarlo"]
   spec.email = ["aaron.collier@stanford.edu", "lwrubel@stanford.edu", "mjgiarlo@stanford.edu"]
 

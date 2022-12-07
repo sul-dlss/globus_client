@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Globus::Client::Authenticator do
+RSpec.describe GlobusClient::Authenticator do
   let(:auth_url) { "https://auth.example.org" }
   let(:client_id) { "client_id" }
   let(:client_secret) { "client_secret" }
