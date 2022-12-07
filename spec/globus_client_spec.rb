@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Globus::Client do
+RSpec.describe GlobusClient do
   subject(:client) do
     described_class.configure(**args)
   end
@@ -24,7 +24,7 @@ RSpec.describe Globus::Client do
   end
 
   it "has a version number" do
-    expect(Globus::Client::VERSION).not_to be_nil
+    expect(GlobusClient::VERSION).not_to be_nil
   end
 
   it "has singleton behavior" do

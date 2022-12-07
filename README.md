@@ -3,9 +3,9 @@
 [![Code Climate](https://codeclimate.com/github/sul-dlss/globus_client/badges/gpa.svg)](https://codeclimate.com/github/sul-dlss/globus_client)
 [![Code Climate Test Coverage](https://api.codeclimate.com/v1/badges/8e6bf1a5d3fc86a6fbd0/test_coverage)](https://codeclimate.com/github/sul-dlss/globus_client/test_coverage)
 
-# Globus::Client
+# GlobusClient
 
-Globus::Client is a Ruby gem that acts as a client to the RESTful HTTP APIs provided by the [Globus service](https://docs.globus.org/api/).
+GlobusClient is a Ruby gem that acts as a client to the RESTful HTTP APIs provided by the [Globus service](https://docs.globus.org/api/).
 
 ## Installation
 
@@ -25,7 +25,7 @@ For one-off requests:
 require 'globus_client'
 
 # NOTE: The settings below live in the consumer, not in the gem.
-client = Globus::Client.configure(
+client = GlobusClient.configure(
   client_id: Settings.globus.client_id,
   client_secret: Settings.globus.client_secret,
   uploads_directory: Settings.globus.uploads_directory,
@@ -43,7 +43,7 @@ to be sure configuration has already occurred, e.g.:
 
 ```ruby
 # config/initializers/globus_client.rb
-Globus::Client.configure(
+GlobusClient.configure(
   client_id: Settings.globus.client_id,
   client_secret: Settings.globus.client_secret,
   uploads_directory: Settings.globus.uploads_directory,
@@ -53,7 +53,7 @@ Globus::Client.configure(
 # app/services/my_globus_service.rb
 # ...
 def create_user_directory
-  Globus::Client.mkdir(user_id: 'mjgiarlo', work_id: 1234, work_version: 1)
+  GlobusClient.mkdir(user_id: 'mjgiarlo', work_id: 1234, work_version: 1)
 end
 # ...
 ```
