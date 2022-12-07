@@ -22,7 +22,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
 For one-off requests:
 
 ```ruby
-require 'globus/client'
+require 'globus_client'
 
 # NOTE: The settings below live in the consumer, not in the gem.
 client = Globus::Client.configure(

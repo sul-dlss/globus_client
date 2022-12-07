@@ -5,7 +5,7 @@ SimpleCov.start do
   add_filter "spec"
 end
 
-require "globus/client"
+require "globus_client"
 require "byebug"
 require "webmock/rspec"
 

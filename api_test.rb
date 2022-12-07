@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "globus/client"
+require "globus_client"
 
 Globus::Client.configure(
   client_id: ENV["GLOBUS_CLIENT_ID"],
