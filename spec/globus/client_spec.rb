@@ -97,17 +97,17 @@ RSpec.describe Globus::Client do
     end
   end
 
-  describe "#exists?" do
-    let(:fake_endpoint) { instance_double(described_class::Identity, exists?: nil) }
+  describe "#user_exists?" do
+    let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
 
     before do
-      allow(described_class::Identity).to receive(:new).and_return(fake_endpoint)
-      allow(fake_endpoint).to receive(:exists?)
+      allow(described_class::Identity).to receive(:new).and_return(fake_identity)
+      allow(fake_identity).to receive(:exists?)
     end
 
     it "invokes Identity#exists?" do
       client.user_exists?(sunetid: "bogus")
-      expect(fake_endpoint).to have_received(:exists?).once
+      expect(fake_identity).to have_received(:exists?).once
     end
   end
 

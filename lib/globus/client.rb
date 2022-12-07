@@ -5,7 +5,6 @@ require "faraday"
 require "ostruct"
 require "singleton"
 require "zeitwerk"
-require "byebug"
 
 # Load the gem's internal dependencies
 loader = Zeitwerk::Loader.new
