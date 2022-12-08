@@ -126,7 +126,7 @@ class GlobusClient
         end
       end
 
-      return response if response.success?
+      return true if response.success?
 
       UnexpectedResponse.call(response)
     end
