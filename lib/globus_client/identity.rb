@@ -7,8 +7,8 @@ class GlobusClient
       @config = config
     end
 
-    def get_identity_id(sunetid)
-      @email = "#{sunetid}@stanford.edu"
+    def get_identity_id(user_id)
+      @email = user_id
 
       response = lookup_identity
       UnexpectedResponse.call(response) unless response.success?
@@ -17,8 +17,8 @@ class GlobusClient
       extract_id(data)
     end
 
-    def exists?(sunetid)
-      get_identity_id(sunetid)
+    def exists?(user_id)
+      get_identity_id(user_id)
       true
     rescue
       false

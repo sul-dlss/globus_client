@@ -7,7 +7,7 @@ RSpec.describe GlobusClient::Identity do
   let(:client_id) { "client_id" }
   let(:client_secret) { "client_secret" }
   let(:config) { OpenStruct.new(auth_url:) }
-  let(:sunetid) { "example" }
+  let(:user_id) { "example@stanford.edu" }
   let(:token_response) do
     {
       access_token: "a_long_silly_token",
@@ -19,16 +19,16 @@ RSpec.describe GlobusClient::Identity do
     }
   end
 
-  context "with a valid sunet email" do
+  context "with a valid Globus ID" do
     let(:identity_response) do
       {
         identities: [{
           name: "Jane Tester",
-          email: "example@stanford.edu",
+          email: user_id,
           id: "12345abc",
           organization: "Stanford University",
           identity_type: "login",
-          username: "example@stanford.edu",
+          username: user_id,
           identity_provider: "example-identity-provider",
           status: "used"
         }]
@@ -39,19 +39,19 @@ RSpec.describe GlobusClient::Identity do
       stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=#{user_id}")
         .to_return(status: 200, body: identity_response.to_json)
     end
 
     describe "#get_identity_id" do
       it "returns the globus user ID" do
-        expect(identity.get_identity_id(sunetid)).to eq "12345abc"
+        expect(identity.get_identity_id(user_id)).to eq "12345abc"
       end
     end
 
     describe "#exists?" do
       it "indicates that the user exists" do
-        expect(identity.exists?(sunetid)).to be true
+        expect(identity.exists?(user_id)).to be true
       end
     end
   end
@@ -61,11 +61,11 @@ RSpec.describe GlobusClient::Identity do
       {
         identities: [{
           name: "Jane Tester",
-          email: "example@stanford.edu",
+          email: user_id,
           id: "12345abc",
           organization: "Stanford University",
           identity_type: "login",
-          username: "example@stanford.edu",
+          username: user_id,
           identity_provider: "example-identity-provider",
           status: "unused"
         }]
@@ -76,19 +76,19 @@ RSpec.describe GlobusClient::Identity do
       stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=#{user_id}")
         .to_return(status: 200, body: identity_response.to_json)
     end
 
     describe "#get_identity_id" do
       it "raises an error" do
-        expect { identity.get_identity_id(sunetid) }.to raise_error(RuntimeError, /No matching active Globus user found/)
+        expect { identity.get_identity_id(user_id) }.to raise_error(RuntimeError, /No matching active Globus user found/)
       end
     end
 
     describe "#exists?" do
       it "indicates that the user does not exist" do
-        expect(identity.exists?(sunetid)).to be false
+        expect(identity.exists?(user_id)).to be false
       end
     end
   end
@@ -113,12 +113,12 @@ RSpec.describe GlobusClient::Identity do
       stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=#{user_id}")
         .to_return(status: 403, body: identity_response.to_json)
     end
 
     it "raises a ForbiddenError" do
-      expect { identity.get_identity_id(sunetid) }.to raise_error(GlobusClient::UnexpectedResponse::ForbiddenError)
+      expect { identity.get_identity_id(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::ForbiddenError)
     end
   end
 
@@ -138,12 +138,12 @@ RSpec.describe GlobusClient::Identity do
       stub_request(:post, "#{auth_url}/v2/oauth2/token")
         .to_return(status: 200, body: token_response.to_json)
 
-      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=example@stanford.edu")
+      stub_request(:get, "#{auth_url}/v2/api/identities?usernames=#{user_id}")
         .to_return(status: 401, body: identity_response.to_json)
     end
 
     it "raises an UnauthorizedError" do
-      expect { identity.get_identity_id(sunetid) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+      expect { identity.get_identity_id(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
     end
   end
 end

@@ -11,24 +11,24 @@ GlobusClient.configure(
   transfer_endpoint_id: ENV["GLOBUS_ENDPOINT"]
 )
 
-user_id, work_id, work_version = *ARGV
+user_id, path = *ARGV
 
 # Test public API methods here.
-GlobusClient.mkdir(user_id:, work_id:, work_version:)
+GlobusClient.mkdir(user_id:, path:)
 
 user_exists = GlobusClient.user_exists?(user_id)
 
 # Not part of the public API but this allows us to test access changes
-before_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id: user_id, work_id: work_id, work_version: work_version).send(:access_rule)["permissions"]
+before_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id:, path:).send(:access_rule)["permissions"]
 
-files_count = GlobusClient.file_count(user_id:, work_id:, work_version:)
+files_count = GlobusClient.file_count(user_id:, path:)
 
-total_size = GlobusClient.total_size(user_id:, work_id:, work_version:)
+total_size = GlobusClient.total_size(user_id:, path:)
 
-GlobusClient.disallow_writes(user_id:, work_id:, work_version:)
+GlobusClient.disallow_writes(user_id:, path:)
 
 # Not part of the public API but this allows us to test access changes
-after_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id: user_id, work_id: work_id, work_version: work_version).send(:access_rule)["permissions"]
+after_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id:, path:).send(:access_rule)["permissions"]
 
 puts "User #{user_id} exists: #{user_exists}"
 puts "Initial directory permissions: #{before_permissions}"

@@ -31,9 +31,9 @@ client = GlobusClient.configure(
   uploads_directory: Settings.globus.uploads_directory,
   transfer_endpoint_id: Settings.globus.transfer_endpoint_id
 )
-client.mkdir(user_id: 'mjgiarlo', work_id: 1234, work_version: 1)
+client.mkdir(user_id: 'mjgiarlo@stanford.edu', path: 'mjgiarlo/work1234/version1')
 
-result = client.user_exists?('mjgiarlo')
+result = client.user_exists?('mjgiarlo@stanford.edu')
 ```
 
 You can also invoke methods directly on the client class, which is useful in a
@@ -53,7 +53,7 @@ GlobusClient.configure(
 # app/services/my_globus_service.rb
 # ...
 def create_user_directory
-  GlobusClient.mkdir(user_id: 'mjgiarlo', work_id: 1234, work_version: 1)
+  GlobusClient.mkdir(user_id: 'mjgiarlo@stanford.edu', path: 'mjgiarlo/work1234/version1')
 end
 # ...
 ```
