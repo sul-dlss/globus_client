@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    globus_client (0.4.0)
+    globus_client (0.5.0)
       activesupport (>= 4.2, < 8)
       faraday
       zeitwerk
