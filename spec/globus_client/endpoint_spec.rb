@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe GlobusClient::Endpoint do
-  subject(:endpoint) { described_class.new(config, user_id:, work_id:, work_version:) }
+  subject(:endpoint) { described_class.new(config, user_id:, path:) }
 
   let(:config) { OpenStruct.new(uploads_directory:, transfer_url:, transfer_endpoint_id:) }
   let(:transfer_endpoint_id) { "NOT_A_REAL_ENDPOINT" }
   let(:transfer_url) { "https://transfer.api.example.org" }
   let(:uploads_directory) { "/uploads/" }
-  let(:user_id) { "example" }
+  let(:user_id) { "example@stanford.edu" }
+  let(:path) { "example/work#{work_id}/version#{work_version}" }
   let(:work_id) { "123" }
   let(:work_version) { "1" }
   let(:mkdir_response) do
@@ -53,7 +54,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: list_response.to_json)
       end
 
@@ -73,7 +74,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 404, body: list_response.to_json)
       end
 
@@ -131,7 +132,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: list_response.to_json)
       end
 
@@ -151,7 +152,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/example/work123/version1/")
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 404, body: list_response.to_json)
       end
 
@@ -202,7 +203,7 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 200, body: mkdir_response.to_json)
 
         stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
-          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work_id}/version#{work_version}/"}.to_json)
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/#{path}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
 
@@ -237,7 +238,7 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 200, body: mkdir_response.to_json)
 
         stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
-          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/#{work_id}/#{work_version}/"}.to_json)
+          .with(body: {DATA_TYPE: "mkdir", path: "/uploads/#{path}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
 
@@ -327,7 +328,7 @@ RSpec.describe GlobusClient::Endpoint do
               DATA_TYPE: "access",
               create_time: "2022-11-22T16:08:24+00:00",
               id: access_rule_id,
-              path: "/uploads/example/work123/version1/",
+              path: "/uploads/#{path}/",
               permissions: "rw",
               principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
               principal_type: "identity",
@@ -464,7 +465,7 @@ RSpec.describe GlobusClient::Endpoint do
               DATA_TYPE: "access",
               create_time: "2022-11-22T16:08:24+00:00",
               id: access_rule_id,
-              path: "/uploads/example/work123/version1/",
+              path: "/uploads/#{path}/",
               permissions: "rw",
               principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
               principal_type: "identity",

@@ -3,15 +3,15 @@
 class GlobusClient
   # The namespace for endpoint API operations
   class Endpoint
+    PATH_SEPARATOR = "/"
+
     # @param config [#token, #uploads_directory, #transfer_endpoint_id, #transfer_url, #auth_url] configuration for the gem
-    # @param user_id [String] conventionally, we use the SUNet ID, not an email address
-    # @param work_id [#to_s] the identifier of the work (e.g., an H2 work)
-    # @param work_version [#to_s] the version of the work (e.g., an H2 version)
-    def initialize(config, user_id:, work_id:, work_version:)
+    # @param path [String] the path to operate on
+    # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
+    def initialize(config, path:, user_id:)
       @config = config
       @user_id = user_id
-      @work_id = work_id
-      @work_version = work_version
+      @path = path
     end
 
     def file_count
@@ -58,7 +58,7 @@ class GlobusClient
 
     private
 
-    attr_reader :config, :user_id, :work_id, :work_version
+    attr_reader :config, :path, :user_id
 
     def connection
       # Transfer API connection
@@ -68,17 +68,19 @@ class GlobusClient
       )
     end
 
-    def user
+    def globus_identity_id
       Identity.new(config).get_identity_id(user_id)
     end
 
     # Builds up a path from a list of path elements. E.g., input would look like:
-    #     ["mjgiarlo", "work123", "version1"]
+    #     "mjgiarlo/work123/version1"
     # And this method returns:
     #     ["/uploads/mjgiarlo/", "/uploads/mjgiarlo/work123/", "/uploads/mjgiarlo/work123/version1/"]
     def paths
       path_segments.map.with_index do |_segment, index|
-        File.join(config.uploads_directory, path_segments.slice(..index)).concat("/")
+        File
+          .join(config.uploads_directory, path_segments.slice(..index))
+          .concat(PATH_SEPARATOR)
       end
     end
 
@@ -88,7 +90,7 @@ class GlobusClient
     end
 
     def path_segments
-      [user_id, "work#{work_id}", "version#{work_version}"]
+      path.split(PATH_SEPARATOR)
     end
 
     def objects
@@ -117,10 +119,10 @@ class GlobusClient
           req.body = {
             DATA_TYPE: "access",
             principal_type: "identity",
-            principal: user,
+            principal: globus_identity_id,
             path: full_path,
             permissions:,
-            notify_email: "#{user_id}@stanford.edu"
+            notify_email: user_id
           }.to_json
           req.headers["Content-Type"] = "application/json"
         end
