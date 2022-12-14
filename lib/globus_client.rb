@@ -32,7 +32,7 @@ class GlobusClient
       self
     end
 
-    delegate :config, :disallow_writes, :file_count, :mkdir, :total_size, :user_exists?, to: :instance
+    delegate :config, :disallow_writes, :file_count, :mkdir, :total_size, :user_exists?, :get_filenames, to: :instance
 
     def default_transfer_url
       "https://transfer.api.globusonline.org"
@@ -64,6 +64,11 @@ class GlobusClient
   def total_size(...)
     endpoint = Endpoint.new(config, ...)
     endpoint.total_size
+  end
+
+  def get_filenames(...)
+    endpoint = Endpoint.new(config, ...)
+    endpoint.get_filenames
   end
 
   def user_exists?(...)

@@ -567,4 +567,137 @@ RSpec.describe GlobusClient::Endpoint do
       expect { endpoint.mkdir }.to raise_error(StandardError)
     end
   end
+
+  describe "#get_filenames" do
+    context "when getting a list of filenames" do
+      let(:path) { "example/work123/version1" }
+      let(:list_response1) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "data",
+                 permissions: "0755",
+                 size: 3,
+                 type: "dir",
+                 user: "globus"},
+          {DATA_TYPE: "file",
+           group: "globus",
+           last_modified: "2022-12-07 19:23:33+00:00",
+           link_group: nil,
+           link_last_modified: nil,
+           link_size: nil,
+           link_target: nil,
+           link_user: nil,
+           name: "outputs",
+           permissions: "0755",
+           size: 3,
+           type: "dir",
+           user: "globus"},
+          {DATA_TYPE: "file",
+           group: "globus",
+           last_modified: "2022-12-07 22:41:54+00:00",
+           link_group: nil,
+           link_last_modified: nil,
+           link_size: nil,
+           link_target: nil,
+           link_user: nil,
+           name: "README.txt",
+           permissions: "0644",
+           size: 10,
+           type: "file",
+           user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 1,
+         path: "/uploads/example/work1234/version1/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 2}
+      end
+      let(:list_path2) { "example/work123/version1/data" }
+      let(:list_response2) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "test.txt",
+                 permissions: "0755",
+                 size: 3,
+                 type: "file",
+                 user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work123/version1/data/",
+         endpoint: "1234",
+         length: 1,
+         path: "/uploads/example/work123/version1/data/",
+         total: 1}
+      end
+      let(:list_path3) { "example/work123/version1/outputs" }
+      let(:list_response3) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "output.txt",
+                 permissions: "0755",
+                 size: 3,
+                 type: "file",
+                 user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work123/version1/outputs/",
+         endpoint: "1234",
+         length: 1,
+         path: "/uploads/example/work123/version1/outputs/",
+         total: 1}
+      end
+      let(:filelist) do
+        ["/uploads/example/work123/version1/README.txt", "/uploads/example/work123/version1/data/test.txt",
+          "/uploads/example/work123/version1/outputs/output.txt"]
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 200, body: list_response1.to_json)
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path2}/")
+          .to_return(status: 200, body: list_response2.to_json)
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path3}/")
+          .to_return(status: 200, body: list_response3.to_json)
+      end
+
+      it "returns a list of filenames" do
+        expect(endpoint.get_filenames).to eq(filelist)
+      end
+    end
+
+    context "when getting a list of filenames for a path that does not exist" do
+      let(:path) { "example/non-existent-work/version1" }
+      let(:not_found_response) do
+        {code: "ClientError.NotFound",
+         message: "Directory '#{path}' not found on endpoint"}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 404, body: not_found_response.to_json)
+      end
+
+      it "raises an UnexpectedResponse" do
+        expect { endpoint.get_filenames }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+      end
+    end
+  end
 end

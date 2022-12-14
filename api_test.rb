@@ -27,6 +27,8 @@ total_size = GlobusClient.total_size(user_id:, path:)
 
 GlobusClient.disallow_writes(user_id:, path:)
 
+files_list = GlobusClient.get_filenames(user_id:, path:)
+
 # Not part of the public API but this allows us to test access changes
 after_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id:, path:).send(:access_rule)["permissions"]
 
@@ -34,4 +36,5 @@ puts "User #{user_id} exists: #{user_exists}"
 puts "Initial directory permissions: #{before_permissions}"
 puts "Number of files in directory: #{files_count}"
 puts "Total size of files in directory: #{total_size}"
+puts "List of files in directory: #{files_list}"
 puts "Final directory permissions: #{after_permissions}"

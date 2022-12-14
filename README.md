@@ -55,6 +55,10 @@ GlobusClient.configure(
 def create_user_directory
   GlobusClient.mkdir(user_id: 'mjgiarlo@stanford.edu', path: 'mjgiarlo/work1234/version1')
 end
+
+def lookup_dir_contents
+  GlobusClient.get_filenames(user_id: 'mjgiarlo@stanford.edu', path: 'mjgiarlo/work1234/version1')
+end
 # ...
 ```
 
