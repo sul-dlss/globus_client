@@ -78,8 +78,8 @@ $ export GLOBUS_CLIENT_ID=$(vault kv get -field=content puppet/application/sdr/g
 $ export GLOBUS_CLIENT_SECRET=$(vault kv get -field=content puppet/application/sdr/globus/{prod|qa|stage}/client_secret)
 $ export GLOBUS_ENDPOINT=$(vault kv get -field=content puppet/application/sdr/globus/{prod|qa|stage}/endpoint_uuid)
 $ export GLOBUS_UPLOADS_DIRECTORY=from_shared_configs
-# NOTE: The three args below are a user ID, a work ID, and a work version
-$ ./api_test.rb mjgiarlo@stanford.edu 987 1
+# NOTE: The two args below are a user ID (email) and a path such as a consumer might construct
+$ ./api_test.rb mjgiarlo@stanford.edu mjgiarlo/work987/version1
 
 Initial directory permissions: rw
 Number of files in directory: 2
