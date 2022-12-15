@@ -97,18 +97,6 @@ class GlobusClient
       path.split(PATH_SEPARATOR)
     end
 
-    def objects
-      # List files at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
-      response = connection.get("#{transfer_path}/ls?path=#{full_path}")
-      return JSON.parse(response.body) if response.success?
-
-      UnexpectedResponse.call(response)
-    end
-
-    def files
-      objects["DATA"].select { |object| object["DATA_TYPE"] == "file" }
-    end
-
     # @param filepath [String] an absolute path to look up contents e.g. /uploads/example/work123/version1
     # @param filenames [Array<Hash>] an array of Hashes, with keys for filename with path and filesize
     def ls_path(filepath, filenames)
