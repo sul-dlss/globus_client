@@ -15,11 +15,11 @@ class GlobusClient
     end
 
     def file_count
-      objects["total"]
+      get_filenames.size
     end
 
     def total_size
-      files.sum { |file| file["size"] }
+      ls_path(full_path, []).sum { |file| file[:filesize] }
     end
 
     # Create a directory https://docs.globus.org/api/transfer/file_operations/#make_directory
@@ -57,7 +57,7 @@ class GlobusClient
     end
 
     def get_filenames
-      ls_path(full_path, [])
+      ls_path(full_path, []).map { |file| file[:filename] }
     end
 
     private
@@ -110,14 +110,14 @@ class GlobusClient
     end
 
     # @param filepath [String] an absolute path to look up contents e.g. /uploads/example/work123/version1
-    # @param filenames [Array<String>] a list of filenames, with absolute filepaths
+    # @param filenames [Array<Hash>] an array of Hashes, with keys for filename with path and filesize
     def ls_path(filepath, filenames)
       # List files recursively at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
       response = connection.get("#{transfer_path}/ls?path=#{filepath}")
       if response.success?
         data = JSON.parse(response.body)["DATA"]
-        data.select { |object| object["type"] == "file" }.map { |file| file["name"] }
-          .each { |file| filenames << "#{filepath}#{file}" }
+        data.select { |object| object["type"] == "file" }.map { |file| file }
+          .each { |file| filenames << {filename: "#{filepath}#{file["name"]}", filesize: file["size"]} }
         data.select { |object| object["type"] == "dir" }.map { |dir| dir["name"] }
           .each { |dir| ls_path("#{filepath}#{dir}/", filenames) }
       else

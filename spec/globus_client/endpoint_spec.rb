@@ -21,147 +21,6 @@ RSpec.describe GlobusClient::Endpoint do
     }
   end
 
-  describe "#file_count" do
-    context "when endpoint ID is found" do
-      let(:list_response) do
-        {
-          DATA: [
-            {
-              DATA_TYPE: "file",
-              group: "globus",
-              last_modified: "2022-10-20 20:09:40+00:00",
-              link_group: nil,
-              link_last_modified: nil,
-              link_size: nil,
-              link_target: nil,
-              link_user: nil,
-              name: "read-test",
-              permissions: "0755",
-              size: 3,
-              type: "dir",
-              user: "globus"
-            }
-          ],
-          DATA_TYPE: "file_list",
-          absolute_path: "/",
-          endpoint: transfer_endpoint_id,
-          length: 1,
-          path: "/~/",
-          rename_supported: true,
-          symlink_supported: false,
-          total: 1
-        }
-      end
-
-      before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 200, body: list_response.to_json)
-      end
-
-      it "returns the length of the file_list" do
-        expect(endpoint.file_count).to eq 1
-      end
-    end
-
-    context "when endpoint ID is not found" do
-      let(:list_response) do
-        {
-          code: "ClientError.NotFound",
-          message: "#{transfer_endpoint_id} not found.",
-          request_id: "1234",
-          resource: "/operation/endpoint/an-endpoint-id/ls"
-        }
-      end
-
-      before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 404, body: list_response.to_json)
-      end
-
-      it "raises a ResourceNotFound exception" do
-        expect { endpoint.file_count }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
-      end
-    end
-  end
-
-  describe "#total_size" do
-    context "when endpoint ID is found" do
-      let(:list_response) do
-        {
-          DATA: [
-            {
-              DATA_TYPE: "file",
-              group: "globus",
-              last_modified: "2022-10-20 20:09:40+00:00",
-              link_group: nil,
-              link_last_modified: nil,
-              link_size: nil,
-              link_target: nil,
-              link_user: nil,
-              name: "read-test",
-              permissions: "0755",
-              size: 3,
-              type: "dir",
-              user: "globus"
-            },
-            {
-              DATA_TYPE: "file",
-              group: "globus",
-              last_modified: "2022-10-21 20:09:40+00:00",
-              link_group: nil,
-              link_last_modified: nil,
-              link_size: nil,
-              link_target: nil,
-              link_user: nil,
-              name: "read-test-2",
-              permissions: "0755",
-              size: 30,
-              type: "dir",
-              user: "globus"
-            }
-          ],
-          DATA_TYPE: "file_list",
-          absolute_path: "/",
-          endpoint: transfer_endpoint_id,
-          length: 2,
-          path: "/~/",
-          rename_supported: true,
-          symlink_supported: false,
-          total: 1
-        }
-      end
-
-      before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 200, body: list_response.to_json)
-      end
-
-      it "returns the length of the file_list" do
-        expect(endpoint.total_size).to eq 33
-      end
-    end
-
-    context "when endpoint ID is not found" do
-      let(:list_response) do
-        {
-          code: "ClientError.NotFound",
-          message: "#{transfer_endpoint_id} not found.",
-          request_id: "1234",
-          resource: "/operation/endpoint/an-endpoint-id/ls"
-        }
-      end
-
-      before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 404, body: list_response.to_json)
-      end
-
-      it "raises a ResourceNotFound exception" do
-        expect { endpoint.total_size }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
-      end
-    end
-  end
-
   describe "#mkdir" do
     context "when creating a directory that does not exist" do
       before do
@@ -568,8 +427,9 @@ RSpec.describe GlobusClient::Endpoint do
     end
   end
 
-  describe "#get_filenames" do
-    context "when getting a list of filenames" do
+  # rubocop:disable RSpec/NestedGroups
+  context "when getting a list of filenames" do
+    context "with a path that exists" do
       let(:path) { "example/work123/version1" }
       let(:list_response1) do
         {DATA: [{DATA_TYPE: "file",
@@ -678,12 +538,26 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 200, body: list_response3.to_json)
       end
 
-      it "returns a list of filenames" do
-        expect(endpoint.get_filenames).to eq(filelist)
+      describe "#get_filenames" do
+        it "returns a list of filenames" do
+          expect(endpoint.get_filenames).to eq(filelist)
+        end
+      end
+
+      describe "#file_count" do
+        it "returns the total number of files" do
+          expect(endpoint.file_count).to eq(3)
+        end
+      end
+
+      describe "#total_size" do
+        it "returns the total file size" do
+          expect(endpoint.total_size).to eq(16)
+        end
       end
     end
 
-    context "when getting a list of filenames for a path that does not exist" do
+    context "with a path that does not exist" do
       let(:path) { "example/non-existent-work/version1" }
       let(:not_found_response) do
         {code: "ClientError.NotFound",
@@ -695,9 +569,24 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 404, body: not_found_response.to_json)
       end
 
-      it "raises an UnexpectedResponse" do
-        expect { endpoint.get_filenames }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+      describe "#get_filenames" do
+        it "raises an UnexpectedResponse" do
+          expect { endpoint.get_filenames }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+        end
       end
+
+      describe "#file_count" do
+        it "raises an UnexpectedResponse" do
+          expect { endpoint.file_count }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+        end
+      end
+
+      describe "#total_size" do
+        it "raises an UnexpectedResponse" do
+          expect { endpoint.total_size }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+        end
+      end
+      # rubocop:enable RSpec/NestedGroups
     end
   end
 end
