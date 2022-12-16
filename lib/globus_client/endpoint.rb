@@ -5,6 +5,8 @@ class GlobusClient
   class Endpoint
     PATH_SEPARATOR = "/"
 
+    FileInfo = Struct.new(:name, :size)
+
     # @param config [#token, #uploads_directory, #transfer_endpoint_id, #transfer_url, #auth_url] configuration for the gem
     # @param path [String] the path to operate on
     # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
@@ -14,12 +16,10 @@ class GlobusClient
       @path = path
     end
 
-    def file_count
-      get_filenames.size
-    end
-
-    def total_size
-      ls_path(full_path, []).sum { |file| file[:filesize] }
+    def list_files
+      ls_path(full_path, []).tap do |files|
+        yield files if block_given?
+      end
     end
 
     # Create a directory https://docs.globus.org/api/transfer/file_operations/#make_directory
@@ -56,17 +56,13 @@ class GlobusClient
       access_request(permissions: "r")
     end
 
-    def get_filenames
-      ls_path(full_path, []).map { |file| file[:filename] }
-    end
-
     private
 
     attr_reader :config, :path, :user_id
 
     def connection
       # Transfer API connection
-      Faraday.new(
+      @connection ||= Faraday.new(
         url: config.transfer_url,
         headers: {Authorization: "Bearer #{config.token}"}
       )
@@ -81,7 +77,7 @@ class GlobusClient
     # And this method returns:
     #     ["/uploads/mjgiarlo/", "/uploads/mjgiarlo/work123/", "/uploads/mjgiarlo/work123/version1/"]
     def paths
-      path_segments.map.with_index do |_segment, index|
+      @paths ||= path_segments.map.with_index do |_segment, index|
         File
           .join(config.uploads_directory, path_segments.slice(..index))
           .concat(PATH_SEPARATOR)
@@ -98,20 +94,22 @@ class GlobusClient
     end
 
     # @param filepath [String] an absolute path to look up contents e.g. /uploads/example/work123/version1
-    # @param filenames [Array<Hash>] an array of Hashes, with keys for filename with path and filesize
-    def ls_path(filepath, filenames)
+    # @param files [Array<FileInfo>] an array of FileInfo structs, each of which has a name and a size
+    def ls_path(filepath, files)
       # List files recursively at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
       response = connection.get("#{transfer_path}/ls?path=#{filepath}")
       if response.success?
         data = JSON.parse(response.body)["DATA"]
-        data.select { |object| object["type"] == "file" }.map { |file| file }
-          .each { |file| filenames << {filename: "#{filepath}#{file["name"]}", filesize: file["size"]} }
-        data.select { |object| object["type"] == "dir" }.map { |dir| dir["name"] }
-          .each { |dir| ls_path("#{filepath}#{dir}/", filenames) }
+        data
+          .select { |object| object["type"] == "file" }
+          .each { |file| files << FileInfo.new("#{filepath}#{file["name"]}", file["size"]) }
+        data
+          .select { |object| object["type"] == "dir" }
+          .each { |dir| ls_path("#{filepath}#{dir["name"]}/", files) }
       else
         UnexpectedResponse.call(response)
       end
-      filenames
+      files
     end
 
     def access_request(permissions:)

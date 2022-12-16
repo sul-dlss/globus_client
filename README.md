@@ -57,7 +57,13 @@ def create_user_directory
 end
 
 def lookup_dir_contents
-  GlobusClient.get_filenames(user_id: 'mjgiarlo@stanford.edu', path: 'mjgiarlo/work1234/version1')
+  GlobusClient.list_files(user_id: "mjgiarlo@stanford.edu", path: "mjgiarlo/work1234/version1") do |files|
+    files_count = files.count
+    total_size = files.sum(&:size)
+    files_list = files.map(&:name)
+
+    return [files_count, total_size, files_list]
+  end
 end
 # ...
 ```

@@ -525,8 +525,11 @@ RSpec.describe GlobusClient::Endpoint do
          total: 1}
       end
       let(:filelist) do
-        ["/uploads/example/work123/version1/README.txt", "/uploads/example/work123/version1/data/test.txt",
-          "/uploads/example/work123/version1/outputs/output.txt"]
+        [
+          described_class::FileInfo.new("/uploads/example/work123/version1/README.txt", 10),
+          described_class::FileInfo.new("/uploads/example/work123/version1/data/test.txt", 3),
+          described_class::FileInfo.new("/uploads/example/work123/version1/outputs/output.txt", 3)
+        ]
       end
 
       before do
@@ -538,21 +541,9 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 200, body: list_response3.to_json)
       end
 
-      describe "#get_filenames" do
-        it "returns a list of filenames" do
-          expect(endpoint.get_filenames).to eq(filelist)
-        end
-      end
-
-      describe "#file_count" do
-        it "returns the total number of files" do
-          expect(endpoint.file_count).to eq(3)
-        end
-      end
-
-      describe "#total_size" do
-        it "returns the total file size" do
-          expect(endpoint.total_size).to eq(16)
+      describe "#list_files" do
+        it "returns a list of FileInfo instances" do
+          expect(endpoint.list_files).to eq(filelist)
         end
       end
     end
@@ -569,21 +560,9 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 404, body: not_found_response.to_json)
       end
 
-      describe "#get_filenames" do
+      describe "#list_files" do
         it "raises an UnexpectedResponse" do
-          expect { endpoint.get_filenames }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
-        end
-      end
-
-      describe "#file_count" do
-        it "raises an UnexpectedResponse" do
-          expect { endpoint.file_count }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
-        end
-      end
-
-      describe "#total_size" do
-        it "raises an UnexpectedResponse" do
-          expect { endpoint.total_size }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+          expect { endpoint.list_files }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
         end
       end
       # rubocop:enable RSpec/NestedGroups
