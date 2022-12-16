@@ -32,7 +32,7 @@ class GlobusClient
       self
     end
 
-    delegate :config, :disallow_writes, :file_count, :mkdir, :total_size, :user_exists?, :get_filenames, to: :instance
+    delegate :config, :disallow_writes, :file_count, :list_files, :mkdir, :total_size, :user_exists?, :get_filenames, to: :instance
 
     def default_transfer_url
       "https://transfer.api.globusonline.org"
@@ -56,19 +56,27 @@ class GlobusClient
     endpoint.disallow_writes
   end
 
+  # NOTE: Can't use the `...` (argument forwarding) operator here because we
+  #       want to route the keyword args to `Endpoint#new` and the block arg to
+  #       `Endpoint#list_files`
+  def list_files(**keywords, &block)
+    endpoint = Endpoint.new(config, **keywords)
+    endpoint.list_files(&block)
+  end
+
   def file_count(...)
     endpoint = Endpoint.new(config, ...)
-    endpoint.file_count
+    endpoint.list_files { |files| return files.count }
   end
 
   def total_size(...)
     endpoint = Endpoint.new(config, ...)
-    endpoint.total_size
+    endpoint.list_files { |files| return files.sum(&:size) }
   end
 
   def get_filenames(...)
     endpoint = Endpoint.new(config, ...)
-    endpoint.get_filenames
+    endpoint.list_files { |files| return files.map(&:name) }
   end
 
   def user_exists?(...)
