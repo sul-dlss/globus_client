@@ -56,15 +56,15 @@ RSpec.describe GlobusClient::Identity do
     end
   end
 
-  context "with user not active in Globus" do
+  context "with user not existing in Globus" do
     let(:identity_response) do
       {
         identities: [{
-          name: "Jane Tester",
-          email: user_id,
+          name: "None",
+          email: "None",
           id: "12345abc",
-          organization: "Stanford University",
-          identity_type: "login",
+          organization: "None",
+          identity_type: "None",
           username: user_id,
           identity_provider: "example-identity-provider",
           status: "unused"
@@ -142,8 +142,16 @@ RSpec.describe GlobusClient::Identity do
         .to_return(status: 401, body: identity_response.to_json)
     end
 
-    it "raises an UnauthorizedError" do
-      expect { identity.get_identity_id(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+    describe "#get_identity_id" do
+      it "raises an UnauthorizedError" do
+        expect { identity.get_identity_id(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+      end
+    end
+
+    describe "#exists?" do
+      it "raises an UnauthorizedError" do
+        expect { identity.exists?(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+      end
     end
   end
 end

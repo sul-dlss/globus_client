@@ -20,7 +20,8 @@ class GlobusClient
     def exists?(user_id)
       get_identity_id(user_id)
       true
-    rescue
+    # if no active user is returned
+    rescue RuntimeError
       false
     end
 
