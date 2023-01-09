@@ -98,16 +98,48 @@ RSpec.describe GlobusClient do
   end
 
   describe "#user_exists?" do
-    let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
+    context "when request is successful" do
+      let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
 
-    before do
-      allow(described_class::Identity).to receive(:new).and_return(fake_identity)
-      allow(fake_identity).to receive(:exists?)
+      before do
+        allow(described_class::Identity).to receive(:new).and_return(fake_identity)
+        allow(fake_identity).to receive(:exists?)
+      end
+
+      it "invokes Identity#exists?" do
+        client.user_exists?(sunetid: "bogus")
+        expect(fake_identity).to have_received(:exists?).once
+      end
     end
 
-    it "invokes Identity#exists?" do
-      client.user_exists?(sunetid: "bogus")
-      expect(fake_identity).to have_received(:exists?).once
+    # Tests the TokenWrapper that requests a new token, with a method that might first encounter the error
+    context "when token is expired" do
+      let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
+
+      before do
+        allow(described_class::Identity).to receive(:new).and_return(fake_identity)
+        allow(GlobusClient::Authenticator).to receive(:token).and_return("a_token", "new_token")
+        allow(fake_identity).to receive(:exists?).once.and_raise(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        allow(fake_identity).to receive(:exists?).once.and_return(true)
+      end
+
+      it "retries Identity#exists?" do
+        expect(client.user_exists?(sunetid: "user")).to be true
+      end
+    end
+
+    context "when UnauthorizedError raised again upon retry" do
+      let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
+
+      before do
+        allow(described_class::Identity).to receive(:new).and_return(fake_identity)
+        allow(GlobusClient::Authenticator).to receive(:token).and_return("a_token", "new_token")
+        allow(fake_identity).to receive(:exists?).and_raise(GlobusClient::UnexpectedResponse::UnauthorizedError)
+      end
+
+      it "raises an error with Identity#exists?" do
+        expect { client.user_exists?(sunetid: "bogus") }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+      end
     end
   end
 

@@ -23,6 +23,8 @@ class GlobusClient
     def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:, transfer_url: default_transfer_url, auth_url: default_auth_url)
       instance.config = OpenStruct.new(
         token: Authenticator.token(client_id, client_secret, auth_url),
+        client_id:,
+        client_secret:,
         uploads_directory:,
         transfer_endpoint_id:,
         transfer_url:,
@@ -46,41 +48,55 @@ class GlobusClient
   attr_accessor :config
 
   def mkdir(...)
-    endpoint = Endpoint.new(config, ...)
-    endpoint.mkdir
-    endpoint.allow_writes
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.mkdir
+      endpoint.allow_writes
+    end
   end
 
   def disallow_writes(...)
-    endpoint = Endpoint.new(config, ...)
-    endpoint.disallow_writes
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.disallow_writes
+    end
   end
 
   # NOTE: Can't use the `...` (argument forwarding) operator here because we
   #       want to route the keyword args to `Endpoint#new` and the block arg to
   #       `Endpoint#list_files`
   def list_files(**keywords, &block)
-    endpoint = Endpoint.new(config, **keywords)
-    endpoint.list_files(&block)
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, **keywords)
+      endpoint.list_files(&block)
+    end
   end
 
   def file_count(...)
-    endpoint = Endpoint.new(config, ...)
-    endpoint.list_files { |files| return files.count }
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.list_files { |files| return files.count }
+    end
   end
 
   def total_size(...)
-    endpoint = Endpoint.new(config, ...)
-    endpoint.list_files { |files| return files.sum(&:size) }
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.list_files { |files| return files.sum(&:size) }
+    end
   end
 
   def get_filenames(...)
-    endpoint = Endpoint.new(config, ...)
-    endpoint.list_files { |files| return files.map(&:name) }
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.list_files { |files| return files.map(&:name) }
+    end
   end
 
   def user_exists?(...)
-    identity = Identity.new(config)
-    identity.exists?(...)
+    TokenWrapper.refresh(config) do
+      identity = Identity.new(config)
+      identity.exists?(...)
+    end
   end
 end
