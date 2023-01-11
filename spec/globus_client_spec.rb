@@ -175,7 +175,7 @@ RSpec.describe GlobusClient do
   end
 
   # Test public API methods in the client that are sent to the Endpoint using the same names
-  [:disallow_writes, :list_files, :mkdir].each do |method|
+  [:disallow_writes, :has_files?, :list_files, :mkdir].each do |method|
     describe ".#{method}" do
       let(:fake_instance) { instance_double(described_class) }
 

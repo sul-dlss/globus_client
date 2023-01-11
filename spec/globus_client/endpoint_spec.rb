@@ -427,6 +427,269 @@ RSpec.describe GlobusClient::Endpoint do
     end
   end
 
+  describe "#has_files?" do
+    let(:path) { "example/work123/version1" }
+    let(:list_response1) do
+      {DATA: [{DATA_TYPE: "file",
+               group: "globus",
+               last_modified: "2022-12-07 19:23:33+00:00",
+               link_group: nil,
+               link_last_modified: nil,
+               link_size: nil,
+               link_target: nil,
+               link_user: nil,
+               name: "data",
+               permissions: "0755",
+               size: 3,
+               type: "dir",
+               user: "globus"},
+        {DATA_TYPE: "file",
+         group: "globus",
+         last_modified: "2022-12-07 19:23:33+00:00",
+         link_group: nil,
+         link_last_modified: nil,
+         link_size: nil,
+         link_target: nil,
+         link_user: nil,
+         name: "outputs",
+         permissions: "0755",
+         size: 3,
+         type: "dir",
+         user: "globus"},
+        {DATA_TYPE: "file",
+         group: "globus",
+         last_modified: "2022-12-07 22:41:54+00:00",
+         link_group: nil,
+         link_last_modified: nil,
+         link_size: nil,
+         link_target: nil,
+         link_user: nil,
+         name: "README.txt",
+         permissions: "0644",
+         size: 10,
+         type: "file",
+         user: "globus"}],
+       DATA_TYPE: "file_list",
+       absolute_path: "/uploads/example/work1234/version1/",
+       endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+       length: 1,
+       path: "/uploads/example/work1234/version1/",
+       rename_supported: true,
+       symlink_supported: false,
+       total: 2}
+    end
+    let(:list_path2) { "example/work123/version1/data" }
+    let(:list_response2) do
+      {DATA: [{DATA_TYPE: "file",
+               group: "globus",
+               last_modified: "2022-12-07 19:23:33+00:00",
+               link_group: nil,
+               link_last_modified: nil,
+               link_size: nil,
+               link_target: nil,
+               link_user: nil,
+               name: "test.txt",
+               permissions: "0755",
+               size: 3,
+               type: "file",
+               user: "globus"}],
+       DATA_TYPE: "file_list",
+       absolute_path: "/uploads/example/work123/version1/data/",
+       endpoint: "1234",
+       length: 1,
+       path: "/uploads/example/work123/version1/data/",
+       total: 1}
+    end
+    let(:list_path3) { "example/work123/version1/outputs" }
+    let(:list_response3) do
+      {DATA: [{DATA_TYPE: "file",
+               group: "globus",
+               last_modified: "2022-12-07 19:23:33+00:00",
+               link_group: nil,
+               link_last_modified: nil,
+               link_size: nil,
+               link_target: nil,
+               link_user: nil,
+               name: "output.txt",
+               permissions: "0755",
+               size: 3,
+               type: "file",
+               user: "globus"}],
+       DATA_TYPE: "file_list",
+       absolute_path: "/uploads/example/work123/version1/outputs/",
+       endpoint: "1234",
+       length: 1,
+       path: "/uploads/example/work123/version1/outputs/",
+       total: 1}
+    end
+
+    context "when path is empty" do
+      let(:empty_response) do
+        {DATA: [],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 0,
+         path: "/uploads/example/work1234/version1/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 0}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 200, body: empty_response.to_json)
+      end
+
+      it "returns false" do
+        expect(endpoint).not_to have_files
+      end
+    end
+
+    context "when path has one or more empty subdirectories" do
+      let(:empty_response) do
+        {DATA: [],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/data/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 0,
+         path: "/uploads/example/work1234/version1/data/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 0}
+      end
+      let(:single_directory_response) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "data",
+                 permissions: "0755",
+                 size: 0,
+                 type: "dir",
+                 user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 1,
+         path: "/uploads/example/work1234/version1/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 1}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 200, body: single_directory_response.to_json)
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/data/")
+          .to_return(status: 200, body: empty_response.to_json)
+      end
+
+      it "returns false" do
+        expect(endpoint).not_to have_files
+      end
+    end
+
+    context "when path has a file" do
+      let(:single_file_response) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "README.txt",
+                 permissions: "0755",
+                 size: 3,
+                 type: "file",
+                 user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 1,
+         path: "/uploads/example/work1234/version1/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 1}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 200, body: single_file_response.to_json)
+      end
+
+      it "returns true" do
+        expect(endpoint).to have_files
+      end
+    end
+
+    context "when path has a file in one or more subdirectories" do
+      let(:single_directory_response) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "data",
+                 permissions: "0755",
+                 size: 0,
+                 type: "dir",
+                 user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 1,
+         path: "/uploads/example/work1234/version1/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 1}
+      end
+      let(:single_file_response) do
+        {DATA: [{DATA_TYPE: "file",
+                 group: "globus",
+                 last_modified: "2022-12-07 19:23:33+00:00",
+                 link_group: nil,
+                 link_last_modified: nil,
+                 link_size: nil,
+                 link_target: nil,
+                 link_user: nil,
+                 name: "README.txt",
+                 permissions: "0755",
+                 size: 3,
+                 type: "file",
+                 user: "globus"}],
+         DATA_TYPE: "file_list",
+         absolute_path: "/uploads/example/work1234/version1/data/",
+         endpoint: "e32f7087-d32d-4588-8517-b2d0d32d53b8",
+         length: 1,
+         path: "/uploads/example/work1234/version1/data/",
+         rename_supported: true,
+         symlink_supported: false,
+         total: 1}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 200, body: single_directory_response.to_json)
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/data/")
+          .to_return(status: 200, body: single_file_response.to_json)
+      end
+
+      it "returns true" do
+        expect(endpoint).to have_files
+      end
+    end
+  end
+
   describe "#list_files" do
     context "with an unsplittable (e.g., nil) path" do
       let(:path) { nil }
