@@ -90,6 +90,8 @@ class GlobusClient
     end
 
     def path_segments
+      raise ArgumentError, "Unexpected path provided: #{path.inspect}" unless path.respond_to?(:split)
+
       path.split(PATH_SEPARATOR)
     end
 

@@ -565,7 +565,26 @@ RSpec.describe GlobusClient::Endpoint do
           expect { endpoint.list_files }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
         end
       end
-      # rubocop:enable RSpec/NestedGroups
     end
+
+    context "with an unsplittable (e.g., nil) path" do
+      let(:path) { nil }
+      let(:not_found_response) do
+        {code: "ClientError.NotFound",
+         message: "Directory '#{path}' not found on endpoint"}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 404, body: not_found_response.to_json)
+      end
+
+      describe "#list_files" do
+        it "raises an ArgumentError" do
+          expect { endpoint.list_files }.to raise_error(ArgumentError, /Unexpected path provided: nil/)
+        end
+      end
+    end
+    # rubocop:enable RSpec/NestedGroups
   end
 end
