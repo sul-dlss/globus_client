@@ -427,8 +427,32 @@ RSpec.describe GlobusClient::Endpoint do
     end
   end
 
-  # rubocop:disable RSpec/NestedGroups
-  context "when getting a list of filenames" do
+  describe "#list_files" do
+    context "with an unsplittable (e.g., nil) path" do
+      let(:path) { nil }
+
+      it "raises an ArgumentError" do
+        expect { endpoint.list_files }.to raise_error(ArgumentError, /Unexpected path provided: nil/)
+      end
+    end
+
+    context "with a path that does not exist" do
+      let(:path) { "example/non-existent-work/version1" }
+      let(:not_found_response) do
+        {code: "ClientError.NotFound",
+         message: "Directory '#{path}' not found on endpoint"}
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+          .to_return(status: 404, body: not_found_response.to_json)
+      end
+
+      it "raises an UnexpectedResponse" do
+        expect { endpoint.list_files }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+      end
+    end
+
     context "with a path that exists" do
       let(:path) { "example/work123/version1" }
       let(:list_response1) do
@@ -541,50 +565,9 @@ RSpec.describe GlobusClient::Endpoint do
           .to_return(status: 200, body: list_response3.to_json)
       end
 
-      describe "#list_files" do
-        it "returns a list of FileInfo instances" do
-          expect(endpoint.list_files).to eq(filelist)
-        end
+      it "returns a list of FileInfo instances" do
+        expect(endpoint.list_files).to eq(filelist)
       end
     end
-
-    context "with a path that does not exist" do
-      let(:path) { "example/non-existent-work/version1" }
-      let(:not_found_response) do
-        {code: "ClientError.NotFound",
-         message: "Directory '#{path}' not found on endpoint"}
-      end
-
-      before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 404, body: not_found_response.to_json)
-      end
-
-      describe "#list_files" do
-        it "raises an UnexpectedResponse" do
-          expect { endpoint.list_files }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
-        end
-      end
-    end
-
-    context "with an unsplittable (e.g., nil) path" do
-      let(:path) { nil }
-      let(:not_found_response) do
-        {code: "ClientError.NotFound",
-         message: "Directory '#{path}' not found on endpoint"}
-      end
-
-      before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 404, body: not_found_response.to_json)
-      end
-
-      describe "#list_files" do
-        it "raises an ArgumentError" do
-          expect { endpoint.list_files }.to raise_error(ArgumentError, /Unexpected path provided: nil/)
-        end
-      end
-    end
-    # rubocop:enable RSpec/NestedGroups
   end
 end
