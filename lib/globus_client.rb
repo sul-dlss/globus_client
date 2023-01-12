@@ -34,7 +34,8 @@ class GlobusClient
       self
     end
 
-    delegate :config, :disallow_writes, :file_count, :list_files, :mkdir, :total_size, :user_exists?, :get_filenames, to: :instance
+    delegate :config, :disallow_writes, :file_count, :list_files, :mkdir, :total_size,
+      :user_exists?, :get_filenames, :has_files?, to: :instance
 
     def default_transfer_url
       "https://transfer.api.globusonline.org"
@@ -90,6 +91,13 @@ class GlobusClient
     TokenWrapper.refresh(config) do
       endpoint = Endpoint.new(config, ...)
       endpoint.list_files { |files| return files.map(&:name) }
+    end
+  end
+
+  def has_files?(...)
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.has_files?
     end
   end
 

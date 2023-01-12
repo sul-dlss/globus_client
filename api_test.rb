@@ -30,6 +30,10 @@ Benchmark.bm(20) do |benchmark|
     @before_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id:, path:).send(:access_rule)["permissions"]
   end
 
+  benchmark.report("has_files?:") do
+    @has_files = GlobusClient.has_files?(user_id:, path:)
+  end
+
   benchmark.report("list_files:") do
     GlobusClient.list_files(user_id:, path:) do |files|
       @files_count = files.count
@@ -49,6 +53,7 @@ Benchmark.bm(20) do |benchmark|
 
   puts "User #{user_id} exists: #{@user_exists}"
   puts "Initial directory permissions: #{@before_permissions}"
+  puts "Directory has files? #{@has_files}"
   puts "Number of files in directory: #{@files_count}"
   puts "Total size of files in directory: #{@total_size}"
   puts "List of files in directory: #{@files_list}"

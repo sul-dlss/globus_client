@@ -16,6 +16,10 @@ class GlobusClient
       @path = path
     end
 
+    def has_files?
+      ls_path(full_path, [], return_presence: true)
+    end
+
     def list_files
       ls_path(full_path, []).tap do |files|
         yield files if block_given?
@@ -90,25 +94,38 @@ class GlobusClient
     end
 
     def path_segments
+      raise ArgumentError, "Unexpected path provided: #{path.inspect}" unless path.respond_to?(:split)
+
       path.split(PATH_SEPARATOR)
     end
 
+    # List files recursively at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
     # @param filepath [String] an absolute path to look up contents e.g. /uploads/example/work123/version1
     # @param files [Array<FileInfo>] an array of FileInfo structs, each of which has a name and a size
-    def ls_path(filepath, files)
-      # List files recursively at an endpoint https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
+    # @param return_presence [Boolean] if true, return a boolean to indicate if any files at all are present, short-circuiting the recursive operation
+    def ls_path(filepath, files, return_presence: false)
       response = connection.get("#{transfer_path}/ls?path=#{filepath}")
-      if response.success?
-        data = JSON.parse(response.body)["DATA"]
-        data
-          .select { |object| object["type"] == "file" }
-          .each { |file| files << FileInfo.new("#{filepath}#{file["name"]}", file["size"]) }
-        data
-          .select { |object| object["type"] == "dir" }
-          .each { |dir| ls_path("#{filepath}#{dir["name"]}/", files) }
-      else
-        UnexpectedResponse.call(response)
+      return UnexpectedResponse.call(response) unless response.success?
+
+      data = JSON.parse(response.body)["DATA"]
+      data
+        .select { |object| object["type"] == "file" }
+        .each do |file|
+        return true if return_presence
+
+        files << FileInfo.new("#{filepath}#{file["name"]}", file["size"])
       end
+      data
+        .select { |object| object["type"] == "dir" }
+        .each do |dir|
+        # NOTE: This allows the recursive method to short-circuit iff ls_path
+        #       returns true, which only happens when return_presence is true
+        #       and the first file is found in the ls operation.
+        return true if ls_path("#{filepath}#{dir["name"]}/", files, return_presence:) == true
+      end
+
+      return false if return_presence
+
       files
     end
 
