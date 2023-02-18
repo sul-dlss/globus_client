@@ -127,9 +127,10 @@ RSpec.describe GlobusClient do
       end
 
       it "fetches a new token and retries Identity#exists?" do
-        expect(client.config.token).to eq "a_token"
-        expect(client.user_exists?(sunetid: "user")).to be true
-        expect(client.config.token).to eq "new_token"
+        expect { client.user_exists?(sunetid: "user") }
+          .to change(client.config, :token)
+          .from("a_token")
+          .to("new_token")
       end
     end
 
