@@ -119,12 +119,18 @@ RSpec.describe GlobusClient do
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
         allow(GlobusClient::Authenticator).to receive(:token).and_return("a_token", "new_token")
-        allow(fake_identity).to receive(:exists?).once.and_raise(GlobusClient::UnexpectedResponse::UnauthorizedError)
-        allow(fake_identity).to receive(:exists?).once.and_return(true)
+        response_values = [:raise, true]
+        allow(fake_identity).to receive(:exists?).twice do
+          v = response_values.shift
+          (v == :raise) ? raise(GlobusClient::UnexpectedResponse::UnauthorizedError) : v
+        end
       end
 
-      it "retries Identity#exists?" do
-        expect(client.user_exists?(sunetid: "user")).to be true
+      it "fetches a new token and retries Identity#exists?" do
+        expect { client.user_exists?(sunetid: "user") }
+          .to change(client.config, :token)
+          .from("a_token")
+          .to("new_token")
       end
     end
 
