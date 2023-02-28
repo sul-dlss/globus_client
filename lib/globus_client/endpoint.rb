@@ -65,8 +65,10 @@ class GlobusClient
     attr_reader :config, :path, :user_id
 
     def connection
-      # Transfer API connection
-      @connection ||= Faraday.new(
+      # Creates a new connection every time to avoid firewall timeouts when
+      # doing many requests over one connection.
+      # https://github.com/sul-dlss/happy-heron/issues/3008
+      Faraday.new(
         url: config.transfer_url,
         headers: {Authorization: "Bearer #{config.token}"}
       )
