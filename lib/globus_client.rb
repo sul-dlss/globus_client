@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/module/delegation"
 require "faraday"
+require "faraday/retry"
 require "ostruct"
 require "singleton"
 require "zeitwerk"

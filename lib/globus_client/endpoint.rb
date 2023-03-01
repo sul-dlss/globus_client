@@ -65,11 +65,20 @@ class GlobusClient
     attr_reader :config, :path, :user_id
 
     def connection
-      # Transfer API connection
+      # faraday/retry is used here to catch Faraday::ConnectionFailed exceptions
+      # see: https://github.com/sul-dlss/happy-heron/issues/3008
       @connection ||= Faraday.new(
         url: config.transfer_url,
         headers: {Authorization: "Bearer #{config.token}"}
-      )
+      ) do |faraday|
+        faraday.request :retry, {
+          max: 10,
+          interval: 0.05,
+          interval_randomness: 0.5,
+          backoff_factor: 2,
+          exceptions: Faraday::Retry::Middleware::DEFAULT_EXCEPTIONS + [Faraday::ConnectionFailed]
+        }
+      end
     end
 
     def globus_identity_id
