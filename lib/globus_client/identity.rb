@@ -7,9 +7,10 @@ class GlobusClient
       @config = config
     end
 
-    def get_identity_id(user_id)
+    # @param user_id [String] the username in the form of an email addresss
+    # @return [Hash] id and status of Globus identity
+    def get_identity(user_id)
       @email = user_id
-
       response = lookup_identity
       UnexpectedResponse.call(response) unless response.success?
 
@@ -17,12 +18,16 @@ class GlobusClient
       extract_id(data)
     end
 
-    def exists?(user_id)
-      get_identity_id(user_id)
-      true
-    # if no active user is returned
-    rescue RuntimeError
-      false
+    # @param user_id [String] the username in the form of an email addresss
+    # @return [Boolean] whether the account has a valid status
+    def valid?(user_id)
+      ["used", "private", "unused"].include?(get_identity(user_id)["status"])
+    end
+
+    # @param user_id [String] the username in the form of an email addresss
+    # @return [String] UUID for Globus identity
+    def get_identity_id(user_id)
+      get_identity(user_id)["id"]
     end
 
     private
@@ -43,12 +48,7 @@ class GlobusClient
 
     def extract_id(data)
       identities = data["identities"]
-      # Select identity with "used" or "private" status
-      matching_users = identities.select { |id| id["username"] == @email }
-      active_users = matching_users.select { |user| (user["status"] == "used" || user["status"] == "private") }
-      raise "No matching active Globus user found for #{@email}." if active_users.empty?
-
-      active_users.first["id"]
+      identities.find { |id| id["username"] == @email }
     end
   end
 end

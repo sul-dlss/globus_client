@@ -33,7 +33,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
     end
 
-    context "when creating a directory for a user that exists" do
+    context "when creating a directory that already exists" do
       let(:mkdir_response_user) do
         {
           code: "ExternalError.MkdirFailed.Exists",

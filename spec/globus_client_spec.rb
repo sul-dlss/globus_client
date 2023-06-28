@@ -83,51 +83,51 @@ RSpec.describe GlobusClient do
     end
   end
 
-  describe ".user_exists?" do
+  describe ".user_valid?" do
     let(:fake_instance) { instance_double(described_class) }
 
     before do
       allow(described_class).to receive(:instance).and_return(fake_instance)
-      allow(fake_instance).to receive(:user_exists?)
+      allow(fake_instance).to receive(:user_valid?)
     end
 
-    it "invokes instance#user_exists?" do
-      described_class.user_exists?
-      expect(fake_instance).to have_received(:user_exists?).once
+    it "invokes instance#user_valid?" do
+      described_class.user_valid?
+      expect(fake_instance).to have_received(:user_valid?).once
     end
   end
 
-  describe "#user_exists?" do
+  describe "#user_valid?" do
     context "when request is successful" do
-      let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
+      let(:fake_identity) { instance_double(described_class::Identity, valid?: nil) }
 
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
-        allow(fake_identity).to receive(:exists?)
+        allow(fake_identity).to receive(:valid?)
       end
 
-      it "invokes Identity#exists?" do
-        client.user_exists?(sunetid: "bogus")
-        expect(fake_identity).to have_received(:exists?).once
+      it "invokes Identity#valid?" do
+        client.user_valid?(sunetid: "bogus")
+        expect(fake_identity).to have_received(:valid?).once
       end
     end
 
     # Tests the TokenWrapper that requests a new token, with a method that might first encounter the error
     context "when token is expired" do
-      let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
+      let(:fake_identity) { instance_double(described_class::Identity, valid?: nil) }
 
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
         allow(GlobusClient::Authenticator).to receive(:token).and_return("a_token", "new_token")
         response_values = [:raise, true]
-        allow(fake_identity).to receive(:exists?).twice do
+        allow(fake_identity).to receive(:valid?).twice do
           v = response_values.shift
           (v == :raise) ? raise(GlobusClient::UnexpectedResponse::UnauthorizedError) : v
         end
       end
 
-      it "fetches a new token and retries Identity#exists?" do
-        expect { client.user_exists?(sunetid: "user") }
+      it "fetches a new token and retries Identity#valid?" do
+        expect { client.user_valid?(sunetid: "user") }
           .to change(client.config, :token)
           .from("a_token")
           .to("new_token")
@@ -135,16 +135,16 @@ RSpec.describe GlobusClient do
     end
 
     context "when UnauthorizedError raised again upon retry" do
-      let(:fake_identity) { instance_double(described_class::Identity, exists?: nil) }
+      let(:fake_identity) { instance_double(described_class::Identity, valid?: nil) }
 
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
         allow(GlobusClient::Authenticator).to receive(:token).and_return("a_token", "new_token")
-        allow(fake_identity).to receive(:exists?).and_raise(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        allow(fake_identity).to receive(:valid?).and_raise(GlobusClient::UnexpectedResponse::UnauthorizedError)
       end
 
-      it "raises an error with Identity#exists?" do
-        expect { client.user_exists?(sunetid: "bogus") }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+      it "raises an error with Identity#valid?" do
+        expect { client.user_valid?(sunetid: "bogus") }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
       end
     end
   end

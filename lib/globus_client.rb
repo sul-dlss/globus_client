@@ -36,7 +36,7 @@ class GlobusClient
     end
 
     delegate :config, :disallow_writes, :file_count, :list_files, :mkdir, :total_size,
-      :user_exists?, :get_filenames, :has_files?, to: :instance
+      :user_valid?, :get_filenames, :has_files?, to: :instance
 
     def default_transfer_url
       "https://transfer.api.globusonline.org"
@@ -102,10 +102,10 @@ class GlobusClient
     end
   end
 
-  def user_exists?(...)
+  def user_valid?(...)
     TokenWrapper.refresh(config) do
       identity = Identity.new(config)
-      identity.exists?(...)
+      identity.valid?(...)
     end
   end
 end
