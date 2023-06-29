@@ -33,7 +33,7 @@ client = GlobusClient.configure(
 )
 client.mkdir(user_id: 'mjgiarlo@stanford.edu', path: 'mjgiarlo/work1234/version1')
 
-result = client.user_exists?('mjgiarlo@stanford.edu')
+result = client.user_valid?('mjgiarlo@stanford.edu')
 ```
 
 You can also invoke methods directly on the client class, which is useful in a

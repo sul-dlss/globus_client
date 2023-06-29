@@ -43,20 +43,26 @@ RSpec.describe GlobusClient::Identity do
         .to_return(status: 200, body: identity_response.to_json)
     end
 
-    describe "#get_identity_id" do
-      it "returns the globus user ID" do
-        expect(identity.get_identity_id(user_id)).to eq "12345abc"
+    describe "#get_identity" do
+      it "returns Globus user id and status" do
+        expect(identity.get_identity(user_id)["id"]).to eq("12345abc")
       end
     end
 
-    describe "#exists?" do
-      it "indicates that the user exists" do
-        expect(identity.exists?(user_id)).to be true
+    describe "#valid?" do
+      it "indicates that the user has used their account" do
+        expect(identity.valid?(user_id)).to be true
+      end
+    end
+
+    describe "#get_identity_id" do
+      it "returns the globus user id" do
+        expect(identity.get_identity_id(user_id)).to eq("12345abc")
       end
     end
   end
 
-  context "with user not existing in Globus" do
+  context "with user having a closed (revoked) account in Globus" do
     let(:identity_response) do
       {
         identities: [{
@@ -67,7 +73,7 @@ RSpec.describe GlobusClient::Identity do
           identity_type: "None",
           username: user_id,
           identity_provider: "example-identity-provider",
-          status: "unused"
+          status: "closed"
         }]
       }
     end
@@ -80,15 +86,15 @@ RSpec.describe GlobusClient::Identity do
         .to_return(status: 200, body: identity_response.to_json)
     end
 
-    describe "#get_identity_id" do
-      it "raises an error" do
-        expect { identity.get_identity_id(user_id) }.to raise_error(RuntimeError, /No matching active Globus user found/)
+    describe "#get_identity" do
+      it "returns the identifier in the data" do
+        expect(identity.get_identity(user_id)["id"]).to eq("12345abc")
       end
     end
 
-    describe "#exists?" do
-      it "indicates that the user does not exist" do
-        expect(identity.exists?(user_id)).to be false
+    describe "#valid?" do
+      it "indicates that the user has an invalid account" do
+        expect(identity.valid?(user_id)).to be false
       end
     end
   end
@@ -118,7 +124,7 @@ RSpec.describe GlobusClient::Identity do
     end
 
     it "raises a ForbiddenError" do
-      expect { identity.get_identity_id(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::ForbiddenError)
+      expect { identity.get_identity(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::ForbiddenError)
     end
   end
 
@@ -142,15 +148,15 @@ RSpec.describe GlobusClient::Identity do
         .to_return(status: 401, body: identity_response.to_json)
     end
 
-    describe "#get_identity_id" do
+    describe "#get_identity" do
       it "raises an UnauthorizedError" do
-        expect { identity.get_identity_id(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        expect { identity.get_identity(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
       end
     end
 
-    describe "#exists?" do
+    describe "#valid?" do
       it "raises an UnauthorizedError" do
-        expect { identity.exists?(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        expect { identity.valid?(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
       end
     end
   end
