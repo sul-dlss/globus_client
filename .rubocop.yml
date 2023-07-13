@@ -3,13 +3,16 @@ inherit_mode:
     - Exclude
 
 require:
+  - standard
+  - standard-custom
+  - standard-performance
   - rubocop-performance
   - rubocop-rspec
-  - standard
 
 inherit_gem:
   standard: config/base.yml
+  standard-performance: config/base.yml
+  standard-custom: config/base.yml
 
 inherit_from:
   - .rubocop/custom.yml
-  - .rubocop_todo.yml
