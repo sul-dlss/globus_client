@@ -113,7 +113,7 @@ class GlobusClient
     # @param files [Array<FileInfo>] an array of FileInfo structs, each of which has a name and a size
     # @param return_presence [Boolean] if true, return a boolean to indicate if any files at all are present, short-circuiting the recursive operation
     def ls_path(filepath, files, return_presence: false)
-      response = connection.get("#{transfer_path}/ls?path=#{filepath}")
+      response = connection.get("#{transfer_path}/ls?path=#{CGI.escape(filepath)}")
       return UnexpectedResponse.call(response) unless response.success?
 
       data = JSON.parse(response.body)["DATA"]
