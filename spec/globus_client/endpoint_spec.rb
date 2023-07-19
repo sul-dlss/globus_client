@@ -256,7 +256,17 @@ RSpec.describe GlobusClient::Endpoint do
   end
 
   describe "#disallow_writes" do
-    context "when no access rules are present for a directory" do
+    context "when no access rules are present for the directory" do
+      let(:access_response) do
+        {
+          code: "Created",
+          resource: "/endpoint/epname/access",
+          DATA_TYPE: "access_create_result",
+          request_id: "abc123",
+          access_id: 12_345,
+          message: "Access rule created successfully."
+        }
+      end
       let(:access_list_response) do
         {
           DATA_TYPE: "access_list",
@@ -287,7 +297,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
     end
 
-    context "when access rules are present for a directory" do
+    context "when access rules are present for the directory" do
       let(:access_response) do
         {
           code: "Updated",
@@ -361,6 +371,120 @@ RSpec.describe GlobusClient::Endpoint do
 
       it "raises ServiceUnavailable" do
         expect { endpoint.disallow_writes }.to raise_error(GlobusClient::UnexpectedResponse::ServiceUnavailable)
+      end
+    end
+  end
+
+  describe "#delete_access_rule" do
+    let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: "example") }
+
+    before do
+      allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
+    end
+
+    context "when access rule is present for directory" do
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: access_rule_id,
+              path: "/uploads/#{path}/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
+      let(:delete_access_rule_response) do
+        {
+          message: "Access rule #{access_rule_id} deleted successfully",
+          code: "Deleted",
+          resource: "/endpoint/user#ep1/access/123",
+          DATA_TYPE: "result",
+          request_id: "ABCdef789"
+        }
+      end
+      let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
+        stub_request(:delete, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+          .to_return(status: 200, body: delete_access_rule_response.to_json)
+      end
+
+      it "does not raise an exception" do
+        expect { endpoint.delete_access_rule(access_rule_path: path) }.not_to raise_error
+      end
+    end
+
+    context "when no access rules are present for directory" do
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
+              path: "/foo/bar/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
+      end
+
+      it "does not raise an exception" do
+        # TODO: should this raise an exception?
+        expect { endpoint.delete_access_rule(access_rule_path: path) }.not_to raise_error
+      end
+    end
+
+    context "when directory is invalid" do
+      let(:access_list_response) do
+        {
+          DATA_TYPE: "access_list",
+          endpoint: transfer_endpoint_id,
+          DATA: [
+            {
+              DATA_TYPE: "access",
+              create_time: "2022-11-22T16:08:24+00:00",
+              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
+              path: "/foo/bar/",
+              permissions: "rw",
+              principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
+              principal_type: "identity",
+              role_id: nil,
+              role_type: nil
+            }
+          ]
+        }
+      end
+
+      before do
+        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+          .to_return(status: 200, body: access_list_response.to_json)
+      end
+
+      it "raises a BadRequestError" do
+        expect { endpoint.delete_access_rule(access_rule_path: path) }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
       end
     end
   end
