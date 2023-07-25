@@ -64,7 +64,6 @@ class GlobusClient
     end
   end
 
-  # expects :delete_rule_path to be passed in as a keyword argument
   def delete_access_rule(...)
     TokenWrapper.refresh(config) do
       endpoint = Endpoint.new(config, ...)

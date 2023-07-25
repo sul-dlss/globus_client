@@ -10,12 +10,10 @@ class GlobusClient
     # @param config [#token, #uploads_directory, #transfer_endpoint_id, #transfer_url, #auth_url] configuration for the gem
     # @param path [String] the path to operate on
     # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
-    # @param delete_rule_path [String] optional - the path to delete the access rule for
-    def initialize(config, path:, user_id:, delete_rule_path:)
+    def initialize(config, path:, user_id:)
       @config = config
       @user_id = user_id
       @path = path
-      @delete_rule_path = delete_rule_path
     end
 
     def has_files?
@@ -62,9 +60,10 @@ class GlobusClient
       update_access_request(permissions: "r")
     end
 
-    # H2 (caller) will have work_version.globus_endpoint and THIS is the path
+    # Delete the access rule https://docs.globus.org/api/transfer/acl/#delete_access_rule
     def delete_access_rule
-      access_rule_id = access_rule(desired_path: delete_rule_path)&.fetch("id")
+      raise(StandardError, "Access rule not found for #{path}") if !access_rule_id
+
       response = connection.delete("#{access_path}/#{access_rule_id}")
       return true if response.success?
 
@@ -200,7 +199,7 @@ class GlobusClient
 
       JSON
         .parse(response.body)["DATA"]
-        .find { |acl| acl["path"] == desired_path }
+        .find { |acl| acl["path"] == full_path }
     end
 
     def access_rule_id
