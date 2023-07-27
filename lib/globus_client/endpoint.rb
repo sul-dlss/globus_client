@@ -57,7 +57,7 @@ class GlobusClient
 
     # Assign a user read-only permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
     def disallow_writes
-      access_request(permissions: "r")
+      update_access_request(permissions: "r")
     end
 
     private
@@ -159,6 +159,22 @@ class GlobusClient
           }.to_json
           req.headers["Content-Type"] = "application/json"
         end
+      end
+
+      return true if response.success?
+
+      UnexpectedResponse.call(response)
+    end
+
+    def update_access_request(permissions:)
+      raise(StandardError, "Access rule not found for #{path}") if !access_rule_id
+
+      response = connection.put("#{access_path}/#{access_rule_id}") do |req|
+        req.body = {
+          DATA_TYPE: "access",
+          permissions:
+        }.to_json
+        req.headers["Content-Type"] = "application/json"
       end
 
       return true if response.success?
