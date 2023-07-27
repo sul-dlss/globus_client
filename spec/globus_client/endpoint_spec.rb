@@ -256,23 +256,7 @@ RSpec.describe GlobusClient::Endpoint do
   end
 
   describe "#disallow_writes" do
-    let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: "example") }
-
-    before do
-      allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
-    end
-
     context "when no access rules are present for a directory" do
-      let(:access_response) do
-        {
-          code: "Created",
-          resource: "/endpoint/epname/access",
-          DATA_TYPE: "access_create_result",
-          request_id: "abc123",
-          access_id: 12_345,
-          message: "Access rule created successfully."
-        }
-      end
       let(:access_list_response) do
         {
           DATA_TYPE: "access_list",
@@ -296,12 +280,10 @@ RSpec.describe GlobusClient::Endpoint do
       before do
         stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
-          .to_return(status: 201, body: access_response.to_json)
       end
 
-      it "does not raise an exception" do
-        expect { endpoint.disallow_writes }.not_to raise_error
+      it "raises an exception" do
+        expect { endpoint.disallow_writes }.to raise_error(StandardError)
       end
     end
 
@@ -348,17 +330,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
     end
 
-    context "when directory is invalid" do
-      let(:access_response) do
-        {
-          code: "InvalidPath",
-          resource: "/endpoint/epname/access",
-          DATA_TYPE: "access_create_result",
-          request_id: "abc123",
-          access_id: 12_345,
-          message: "Invalid Path"
-        }
-      end
+    context "when Globus returns an error" do
       let(:access_list_response) do
         {
           DATA_TYPE: "access_list",
@@ -367,8 +339,8 @@ RSpec.describe GlobusClient::Endpoint do
             {
               DATA_TYPE: "access",
               create_time: "2022-11-22T16:08:24+00:00",
-              id: "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080",
-              path: "/foo/bar/",
+              id: access_rule_id,
+              path: "/uploads/#{path}/",
               permissions: "rw",
               principal: "ae3e3f70-4065-408b-9cd8-39dc01b07d29",
               principal_type: "identity",
@@ -378,16 +350,17 @@ RSpec.describe GlobusClient::Endpoint do
           ]
         }
       end
+      let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
         stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
-          .to_return(status: 400, body: access_response.to_json)
+        stub_request(:put, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+          .to_return(status: 503)
       end
 
-      it "raises a BadRequestError" do
-        expect { endpoint.disallow_writes }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
+      it "raises ServiceUnavailable" do
+        expect { endpoint.disallow_writes }.to raise_error(GlobusClient::UnexpectedResponse::ServiceUnavailable)
       end
     end
   end
