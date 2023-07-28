@@ -35,7 +35,7 @@ class GlobusClient
       self
     end
 
-    delegate :config, :disallow_writes, :file_count, :list_files, :mkdir, :total_size,
+    delegate :config, :disallow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :total_size,
       :user_valid?, :get_filenames, :has_files?, to: :instance
 
     def default_transfer_url
@@ -61,6 +61,13 @@ class GlobusClient
     TokenWrapper.refresh(config) do
       endpoint = Endpoint.new(config, ...)
       endpoint.disallow_writes
+    end
+  end
+
+  def delete_access_rule(...)
+    TokenWrapper.refresh(config) do
+      endpoint = Endpoint.new(config, ...)
+      endpoint.delete_access_rule
     end
   end
 

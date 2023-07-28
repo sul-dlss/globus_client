@@ -60,6 +60,16 @@ class GlobusClient
       update_access_request(permissions: "r")
     end
 
+    # Delete the access rule https://docs.globus.org/api/transfer/acl/#delete_access_rule
+    def delete_access_rule
+      raise(StandardError, "Access rule not found for #{path}") if !access_rule_id
+
+      response = connection.delete("#{access_path}/#{access_rule_id}")
+      return true if response.success?
+
+      UnexpectedResponse.call(response)
+    end
+
     private
 
     attr_reader :config, :path, :user_id
