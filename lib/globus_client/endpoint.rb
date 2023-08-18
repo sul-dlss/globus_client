@@ -197,6 +197,10 @@ class GlobusClient
         req.headers["Content-Type"] = "application/json"
       end
 
+      # debugging of Globus responses
+      response_body = JSON.parse(response.body)
+      raise(StandardError, "Response is missing DATA in: #{response_body}") unless response_body.key?("DATA")
+
       JSON
         .parse(response.body)["DATA"]
         .find { |acl| acl["path"] == full_path }
