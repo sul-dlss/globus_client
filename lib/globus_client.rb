@@ -23,7 +23,17 @@ class GlobusClient
     # @param auth_url [String] the authentication API URL
     def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:, transfer_url: default_transfer_url, auth_url: default_auth_url)
       instance.config = OpenStruct.new(
-        token: Authenticator.token(client_id, client_secret, auth_url),
+        # For the initial token, use a dummy value to avoid hitting any APIs
+        # during configuration, allowing the `TokenWrapper` to handle auto-magic
+        # token refreshing. Why not immediately get a valid token? Our apps
+        # commonly invoke client `.configure` methods in the initializer in all
+        # application environments, even those that are never expected to
+        # connect to production APIs, such as local development machines.
+        #
+        # NOTE: `nil` and blank string cannot be used as dummy values here as
+        # they lead to a malformed request to be sent, which triggers an
+        # exception not rescued by `TokenWrapper`
+        token: "a temporary dummy token to avoid hitting the API before it is needed",
         client_id:,
         client_secret:,
         uploads_directory:,

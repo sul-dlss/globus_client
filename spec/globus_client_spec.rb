@@ -62,8 +62,8 @@ RSpec.describe GlobusClient do
   end
 
   describe "#config" do
-    it "includes a token" do
-      expect(client.config.token).to be_nil
+    it "includes a dummy token" do
+      expect(client.config.token).to eq("a temporary dummy token to avoid hitting the API before it is needed")
     end
 
     it "includes an uploads directory" do
@@ -118,7 +118,7 @@ RSpec.describe GlobusClient do
 
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
-        allow(GlobusClient::Authenticator).to receive(:token).and_return("a_token", "new_token")
+        allow(GlobusClient::Authenticator).to receive(:token).and_return("new_token")
         response_values = [:raise, true]
         allow(fake_identity).to receive(:valid?).twice do
           v = response_values.shift
@@ -129,7 +129,7 @@ RSpec.describe GlobusClient do
       it "fetches a new token and retries Identity#valid?" do
         expect { client.user_valid?(sunetid: "user") }
           .to change(client.config, :token)
-          .from("a_token")
+          .from("a temporary dummy token to avoid hitting the API before it is needed")
           .to("new_token")
       end
     end
