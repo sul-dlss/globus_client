@@ -21,8 +21,8 @@ Benchmark.bm(20) do |benchmark|
     GlobusClient.mkdir(user_id:, path:)
   end
 
-  benchmark.report("user_exists?:") do
-    @user_exists = GlobusClient.user_exists?(user_id)
+  benchmark.report("user_valid?:") do
+    @user_exists = GlobusClient.user_valid?(user_id)
   end
 
   benchmark.report("before_perms:") do
