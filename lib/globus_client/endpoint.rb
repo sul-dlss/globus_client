@@ -199,7 +199,8 @@ class GlobusClient
 
       # debugging of Globus responses
       response_body = JSON.parse(response.body)
-      raise(StandardError, "Response is missing DATA in: #{response_body}") unless response_body.key?("DATA")
+
+      UnexpectedResponse.call(response, message: "Response is missing DATA in: #{response_body}") unless response.success? && response_body.key?("DATA")
 
       JSON
         .parse(response.body)["DATA"]
