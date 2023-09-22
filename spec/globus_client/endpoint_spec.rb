@@ -512,6 +512,17 @@ RSpec.describe GlobusClient::Endpoint do
     end
   end
 
+  context "when the token needs to be refreshed" do
+    before do
+      stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        .to_return(status: 401, body: {}.to_json)
+    end
+
+    it "raises an UnexpectedResponse" do
+      expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+    end
+  end
+
   describe "#has_files?" do
     let(:path) { "example/work123/version1" }
     let(:list_response1) do
