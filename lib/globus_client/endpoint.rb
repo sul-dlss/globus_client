@@ -7,11 +7,11 @@ class GlobusClient
 
     FileInfo = Struct.new(:name, :size)
 
-    # @param config [#token, #uploads_directory, #transfer_endpoint_id, #transfer_url, #auth_url] configuration for the gem
+    # @param client [GlobusClient] a configured instance of the GlobusClient
     # @param path [String] the path to operate on
     # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
-    def initialize(config, path:, user_id:)
-      @config = config
+    def initialize(client, path:, user_id:)
+      @client = client
       @user_id = user_id
       @path = path
     end
@@ -30,23 +30,12 @@ class GlobusClient
     def mkdir
       # transfer API does not support recursive directory creation
       paths.each do |path|
-        response = connection.post("#{transfer_path}/mkdir") do |req|
-          req.headers["Content-Type"] = "application/json"
-          req.body = {
-            DATA_TYPE: "mkdir",
-            path:
-          }.to_json
-        end
-
-        next if response.success?
-
-        # Ignore error if directory already exists
-        if response.status == 502
-          error = JSON.parse(response.body)
-          next if error["code"] == "ExternalError.MkdirFailed.Exists"
-        end
-
-        UnexpectedResponse.call(response)
+        client.post(
+          base_url: client.config.transfer_url,
+          path: "#{transfer_path}/mkdir",
+          body: {DATA_TYPE: "mkdir", path:},
+          expected_response: ->(resp) { resp.status == 502 && JSON.parse(resp.body)["code"] == "ExternalError.MkdirFailed.Exists" }
+        )
       end
     end
 
@@ -64,35 +53,18 @@ class GlobusClient
     def delete_access_rule
       raise(StandardError, "Access rule not found for #{path}") if !access_rule_id
 
-      response = connection.delete("#{access_path}/#{access_rule_id}")
-      return true if response.success?
-
-      UnexpectedResponse.call(response)
+      client.delete(
+        base_url: client.config.transfer_url,
+        path: "#{access_path}/#{access_rule_id}"
+      )
     end
 
     private
 
-    attr_reader :config, :path, :user_id
-
-    def connection
-      # faraday/retry is used here to catch Faraday::ConnectionFailed exceptions
-      # see: https://github.com/sul-dlss/happy-heron/issues/3008
-      @connection ||= Faraday.new(
-        url: config.transfer_url,
-        headers: {Authorization: "Bearer #{config.token}"}
-      ) do |faraday|
-        faraday.request :retry, {
-          max: 10,
-          interval: 0.05,
-          interval_randomness: 0.5,
-          backoff_factor: 2,
-          exceptions: Faraday::Retry::Middleware::DEFAULT_EXCEPTIONS + [Faraday::ConnectionFailed]
-        }
-      end
-    end
+    attr_reader :client, :path, :user_id
 
     def globus_identity_id
-      Identity.new(config).get_identity_id(user_id)
+      Identity.new(client).get_identity_id(user_id)
     end
 
     # Builds up a path from a list of path elements. E.g., input would look like:
@@ -102,7 +74,7 @@ class GlobusClient
     def paths
       @paths ||= path_segments.map.with_index do |_segment, index|
         File
-          .join(config.uploads_directory, path_segments.slice(..index))
+          .join(client.config.uploads_directory, path_segments.slice(..index))
           .concat(PATH_SEPARATOR)
       end
     end
@@ -123,18 +95,21 @@ class GlobusClient
     # @param files [Array<FileInfo>] an array of FileInfo structs, each of which has a name and a size
     # @param return_presence [Boolean] if true, return a boolean to indicate if any files at all are present, short-circuiting the recursive operation
     def ls_path(filepath, files, return_presence: false)
-      response = connection.get("#{transfer_path}/ls?path=#{CGI.escape(filepath)}")
-      return UnexpectedResponse.call(response) unless response.success?
+      response = client.get(
+        base_url: client.config.transfer_url,
+        path: "#{transfer_path}/ls",
+        params: {path: filepath}
+      )
 
-      data = JSON.parse(response.body)["DATA"]
-      data
+      response["DATA"]
         .select { |object| object["type"] == "file" }
         .each do |file|
         return true if return_presence
 
         files << FileInfo.new("#{filepath}#{file["name"]}", file["size"])
       end
-      data
+
+      response["DATA"]
         .select { |object| object["type"] == "dir" }
         .each do |dir|
         # NOTE: This allows the recursive method to short-circuit iff ls_path
@@ -149,62 +124,45 @@ class GlobusClient
     end
 
     def access_request(permissions:)
-      response = if access_rule_id
-        connection.put("#{access_path}/#{access_rule_id}") do |req|
-          req.body = {
-            DATA_TYPE: "access",
-            permissions:
-          }.to_json
-          req.headers["Content-Type"] = "application/json"
-        end
+      if access_rule_id
+        update_access_request(permissions:)
       else
-        connection.post(access_path) do |req|
-          req.body = {
+        client.post(
+          base_url: client.config.transfer_url,
+          path: access_path,
+          body: {
             DATA_TYPE: "access",
             principal_type: "identity",
             principal: globus_identity_id,
             path: full_path,
             permissions:,
             notify_email: user_id
-          }.to_json
-          req.headers["Content-Type"] = "application/json"
-        end
+          }
+        )
       end
-
-      return true if response.success?
-
-      UnexpectedResponse.call(response)
     end
 
     def update_access_request(permissions:)
       raise(StandardError, "Access rule not found for #{path}") if !access_rule_id
 
-      response = connection.put("#{access_path}/#{access_rule_id}") do |req|
-        req.body = {
+      client.put(
+        base_url: client.config.transfer_url,
+        path: "#{access_path}/#{access_rule_id}",
+        body: {
           DATA_TYPE: "access",
           permissions:
-        }.to_json
-        req.headers["Content-Type"] = "application/json"
-      end
-
-      return true if response.success?
-
-      UnexpectedResponse.call(response)
+        }
+      )
     end
 
     def access_rule
-      response = connection.get(access_list_path) do |req|
-        req.headers["Content-Type"] = "application/json"
-      end
+      response = client.get(
+        base_url: client.config.transfer_url,
+        path: access_list_path,
+        content_type: "application/json"
+      )
 
-      # debugging of Globus responses
-      response_body = JSON.parse(response.body)
-
-      UnexpectedResponse.call(response, message: "Response is missing DATA in: #{response_body}") unless response.success? && response_body.key?("DATA")
-
-      JSON
-        .parse(response.body)["DATA"]
-        .find { |acl| acl["path"] == full_path }
+      response.fetch("DATA").find { |acl| acl["path"] == full_path }
     end
 
     def access_rule_id
@@ -212,15 +170,15 @@ class GlobusClient
     end
 
     def transfer_path
-      "/v0.10/operation/endpoint/#{config.transfer_endpoint_id}"
+      "/v0.10/operation/endpoint/#{client.config.transfer_endpoint_id}"
     end
 
     def access_path
-      "/v0.10/endpoint/#{config.transfer_endpoint_id}/access"
+      "/v0.10/endpoint/#{client.config.transfer_endpoint_id}/access"
     end
 
     def access_list_path
-      "/v0.10/endpoint/#{config.transfer_endpoint_id}/access_list"
+      "/v0.10/endpoint/#{client.config.transfer_endpoint_id}/access_list"
     end
   end
 end

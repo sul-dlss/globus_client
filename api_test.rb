@@ -27,7 +27,7 @@ Benchmark.bm(20) do |benchmark|
 
   benchmark.report("before_perms:") do
     # Not part of the public API but this allows us to test access changes
-    @before_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id:, path:).send(:access_rule)["permissions"]
+    @before_permissions = GlobusClient::Endpoint.new(GlobusClient.instance, user_id:, path:).send(:access_rule)["permissions"]
   end
 
   benchmark.report("has_files?:") do
@@ -48,7 +48,7 @@ Benchmark.bm(20) do |benchmark|
 
   benchmark.report("after_perms:") do
     # Not part of the public API but this allows us to test access changes
-    @after_permissions = GlobusClient::Endpoint.new(GlobusClient.config, user_id:, path:).send(:access_rule)["permissions"]
+    @after_permissions = GlobusClient::Endpoint.new(GlobusClient.instance, user_id:, path:).send(:access_rule)["permissions"]
   end
 
   puts "User #{user_id} exists: #{@user_exists}"

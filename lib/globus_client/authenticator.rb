@@ -17,6 +17,8 @@ class GlobusClient
     def token
       response = connection.post("/v2/oauth2/token", form_data)
 
+      UnexpectedResponse.call(response) unless response.success?
+
       JSON.parse(response.body)["access_token"]
     end
 

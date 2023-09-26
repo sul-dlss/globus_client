@@ -107,27 +107,32 @@ RSpec.describe GlobusClient do
       end
 
       it "invokes Identity#valid?" do
-        client.user_valid?(sunetid: "bogus")
+        client.user_valid?("bogus")
         expect(fake_identity).to have_received(:valid?).once
       end
     end
 
-    # Tests the TokenWrapper that requests a new token, with a method that might first encounter the error
+    # Tests that #with_token_refresh_when_unauthorized requests a new token, with a method that might first encounter the error
     context "when token is expired" do
-      let(:fake_identity) { instance_double(described_class::Identity, valid?: nil) }
-
       before do
-        allow(described_class::Identity).to receive(:new).and_return(fake_identity)
-        allow(GlobusClient::Authenticator).to receive(:token).and_return("new_token")
-        response_values = [:raise, true]
-        allow(fake_identity).to receive(:valid?).twice do
-          v = response_values.shift
-          (v == :raise) ? raise(GlobusClient::UnexpectedResponse::UnauthorizedError) : v
-        end
+        stub_request(:post, "#{client.config.auth_url}/v2/oauth2/token")
+          .to_return(
+            {status: 200, body: "{\"access_token\" : \"new_token\"}"}
+          )
+        stub_request(:get, "#{client.config.auth_url}/v2/api/identities?usernames=user")
+          .with(headers: {Authorization: "Bearer a temporary dummy token to avoid hitting the API before it is needed"})
+          .to_return(
+            {status: 401, body: "invalid authN token"}
+          )
+        stub_request(:get, "#{client.config.auth_url}/v2/api/identities?usernames=user")
+          .with(headers: {Authorization: "Bearer new_token"})
+          .to_return(
+            {status: 200, body: "{\"identities\":[{\"username\":\"user\",\"status\":\"used\"}]}"}
+          )
       end
 
       it "fetches a new token and retries Identity#valid?" do
-        expect { client.user_valid?(sunetid: "user") }
+        expect { client.user_valid?("user") }
           .to change(client.config, :token)
           .from("a temporary dummy token to avoid hitting the API before it is needed")
           .to("new_token")
@@ -144,7 +149,7 @@ RSpec.describe GlobusClient do
       end
 
       it "raises an error with Identity#valid?" do
-        expect { client.user_valid?(sunetid: "bogus") }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        expect { client.user_valid?("bogus") }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
       end
     end
   end
