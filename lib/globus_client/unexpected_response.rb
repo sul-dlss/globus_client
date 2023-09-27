@@ -26,7 +26,7 @@ class GlobusClient
     # https://docs.globus.org/api/transfer/file_operations/#errors
     # https://docs.globus.org/api/transfer/acl/#common_errors
     # https://docs.globus.org/api/auth/reference/
-    def self.call(response, message: "")
+    def self.call(response)
       case response.status
       when 400
         raise BadRequestError, "Invalid path or another error with the request: #{response.body}"
@@ -37,11 +37,11 @@ class GlobusClient
       when 404
         raise ResourceNotFound, "Endpoint ID not found or resource does not exist: #{response.body}"
       when 502
-        raise EndpointError, "Other error with endpoint: #{response.status} #{response.body}. #{message}"
+        raise EndpointError, "Other error with endpoint: #{response.status} #{response.body}."
       when 503
         raise ServiceUnavailable, "The service is down for maintenance."
       else
-        raise StandardError, "Unexpected response: #{response.status} #{response.body}. #{message}"
+        raise StandardError, "Unexpected response: #{response.status} #{response.body}."
       end
     end
   end

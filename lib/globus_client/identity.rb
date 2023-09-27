@@ -3,19 +3,20 @@
 class GlobusClient
   # Lookup of a Globus identity ID
   class Identity
-    def initialize(config)
-      @config = config
+    def initialize(client)
+      @client = client
     end
 
     # @param user_id [String] the username in the form of an email addresss
     # @return [Hash] id and status of Globus identity
     def get_identity(user_id)
-      @email = user_id
-      response = lookup_identity
-      UnexpectedResponse.call(response) unless response.success?
+      response = client.get(
+        base_url: client.config.auth_url,
+        path: "/v2/api/identities",
+        params: {usernames: user_id}
+      )
 
-      data = JSON.parse(response.body)
-      extract_id(data)
+      response["identities"].find { |id| id["username"] == user_id }
     end
 
     # @param user_id [String] the username in the form of an email addresss
@@ -32,23 +33,6 @@ class GlobusClient
 
     private
 
-    attr_reader :config
-
-    def connection
-      Faraday.new(url: config.auth_url)
-    end
-
-    def lookup_identity
-      id_endpoint = "/v2/api/identities"
-      connection.get(id_endpoint) do |req|
-        req.params["usernames"] = @email
-        req.headers["Authorization"] = "Bearer #{config.token}"
-      end
-    end
-
-    def extract_id(data)
-      identities = data["identities"]
-      identities.find { |id| id["username"] == @email }
-    end
+    attr_reader :client
   end
 end

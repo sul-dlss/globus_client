@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
 RSpec.describe GlobusClient::Identity do
-  subject(:identity) { described_class.new(config) }
+  subject(:identity) { described_class.new(client) }
 
   let(:auth_url) { "https://auth.example.org" }
-  let(:client_id) { "client_id" }
-  let(:client_secret) { "client_secret" }
-  let(:config) { OpenStruct.new(auth_url:) }
+  let(:client) do
+    GlobusClient.configure(
+      auth_url:,
+      client_id: "client_id",
+      client_secret: "client_secret",
+      transfer_endpoint_id: "not_a_real_endpoint",
+      uploads_directory: "/fake_uploads/"
+    )
+  end
   let(:user_id) { "example@stanford.edu" }
   let(:token_response) do
     {

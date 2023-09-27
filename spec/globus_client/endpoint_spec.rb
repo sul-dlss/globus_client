@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
 RSpec.describe GlobusClient::Endpoint do
-  subject(:endpoint) { described_class.new(config, user_id:, path:) }
+  subject(:endpoint) { described_class.new(client, user_id:, path:) }
 
-  let(:config) { OpenStruct.new(uploads_directory:, transfer_url:, transfer_endpoint_id:) }
+  let(:client) do
+    GlobusClient.configure(
+      client_id: "client_id",
+      client_secret: "client_secret",
+      transfer_endpoint_id:,
+      transfer_url:,
+      uploads_directory:
+    )
+  end
   let(:transfer_endpoint_id) { "NOT_A_REAL_ENDPOINT" }
   let(:transfer_url) { "https://transfer.api.example.org" }
   let(:uploads_directory) { "/uploads/" }
@@ -24,7 +32,7 @@ RSpec.describe GlobusClient::Endpoint do
   describe "#mkdir" do
     context "when creating a directory that does not exist" do
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .to_return(status: 202, body: mkdir_response.to_json)
       end
 
@@ -50,18 +58,18 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: user_request_body.to_json)
           .to_return(status: 502, body: mkdir_response_user.to_json)
 
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .to_return(status: 200, body: mkdir_response.to_json)
 
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/work#{work_id}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
 
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: {DATA_TYPE: "mkdir", path: "/uploads/#{path}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
@@ -88,15 +96,15 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: user_request_body.to_json)
           .to_return(status: 502, body: mkdir_response_error.to_json)
 
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: {DATA_TYPE: "mkdir", path: "/uploads/example/#{work_id}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
 
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .with(body: {DATA_TYPE: "mkdir", path: "/uploads/#{path}/"}.to_json)
           .to_return(status: 200, body: mkdir_response.to_json)
       end
@@ -108,7 +116,7 @@ RSpec.describe GlobusClient::Endpoint do
 
     context "when the Globus server is under maintenance and returns a 503" do
       before do
-        stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
           .to_return(status: 503)
       end
 
@@ -157,9 +165,9 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
+        stub_request(:post, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 201, body: access_response.to_json)
       end
 
@@ -200,9 +208,9 @@ RSpec.describe GlobusClient::Endpoint do
       let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:put, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+        stub_request(:put, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
           .to_return(status: 200, body: access_response.to_json)
       end
 
@@ -243,9 +251,9 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:post, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
+        stub_request(:post, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access")
           .to_return(status: 400, body: access_response.to_json)
       end
 
@@ -278,7 +286,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
       end
 
@@ -319,9 +327,9 @@ RSpec.describe GlobusClient::Endpoint do
       let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:put, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+        stub_request(:put, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
           .to_return(status: 200, body: access_response.to_json)
       end
 
@@ -353,9 +361,9 @@ RSpec.describe GlobusClient::Endpoint do
       let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:put, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+        stub_request(:put, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
           .to_return(status: 503)
       end
 
@@ -400,9 +408,9 @@ RSpec.describe GlobusClient::Endpoint do
       let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:delete, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+        stub_request(:delete, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
           .to_return(status: 200, body: delete_access_rule_response.to_json)
       end
 
@@ -433,7 +441,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
       end
 
@@ -465,9 +473,9 @@ RSpec.describe GlobusClient::Endpoint do
       let(:access_rule_id) { "e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080" }
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
           .to_return(status: 200, body: access_list_response.to_json)
-        stub_request(:delete, "#{config.transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
+        stub_request(:delete, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access/#{access_rule_id}")
           .to_return(status: 503)
       end
 
@@ -487,7 +495,7 @@ RSpec.describe GlobusClient::Endpoint do
     end
 
     before do
-      stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+      stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
         .to_return(status: 400, body: endpoint_response.to_json)
     end
 
@@ -503,7 +511,7 @@ RSpec.describe GlobusClient::Endpoint do
     end
 
     before do
-      stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+      stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
         .to_return(status: 500, body: other_response.to_json)
     end
 
@@ -514,12 +522,24 @@ RSpec.describe GlobusClient::Endpoint do
 
   context "when the token needs to be refreshed" do
     before do
-      stub_request(:post, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
-        .to_return(status: 401, body: {}.to_json)
+      stub_request(:post, "#{client.config.auth_url}/v2/oauth2/token")
+        .to_return(
+          {status: 200, body: "{\"access_token\" : \"new_token\"}"}
+        )
+      stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        .with(headers: {Authorization: "Bearer a temporary dummy token to avoid hitting the API before it is needed"})
+        .to_return(
+          {status: 401, body: "invalid authN token"}
+        )
+      stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
+        .with(headers: {Authorization: "Bearer new_token"})
+        .to_return(
+          {status: 200, body: "{}"}
+        )
     end
 
-    it "raises an UnexpectedResponse" do
-      expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+    it "refreshes its token automatically" do
+      expect { endpoint.mkdir }.not_to raise_error
     end
   end
 
@@ -633,7 +653,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: empty_response.to_json)
       end
 
@@ -679,9 +699,9 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: single_directory_response.to_json)
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/data/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/data/")
           .to_return(status: 200, body: empty_response.to_json)
       end
 
@@ -716,7 +736,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: single_file_response.to_json)
       end
 
@@ -774,9 +794,9 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: single_directory_response.to_json)
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/data/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/data/")
           .to_return(status: 200, body: single_file_response.to_json)
       end
 
@@ -803,7 +823,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 404, body: not_found_response.to_json)
       end
 
@@ -916,11 +936,11 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       before do
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
           .to_return(status: 200, body: list_response1.to_json)
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path2}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path2}/")
           .to_return(status: 200, body: list_response2.to_json)
-        stub_request(:get, "#{config.transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path3}/")
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path3}/")
           .to_return(status: 200, body: list_response3.to_json)
       end
 
