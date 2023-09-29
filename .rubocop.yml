@@ -1,18 +1,36 @@
-inherit_mode:
-  merge:
-    - Exclude
-
 require:
-  - standard
-  - standard-custom
-  - standard-performance
-  - rubocop-performance
   - rubocop-rspec
 
-inherit_gem:
-  standard: config/base.yml
-  standard-performance: config/base.yml
-  standard-custom: config/base.yml
+AllCops:
+  TargetRubyVersion: 3.1
+  DisplayCopNames: true
+  SuggestExtensions: false
+  NewCops: disable
+  Exclude:
+    - bin/**
+    - vendor/bundle/**/*
 
-inherit_from:
-  - .rubocop/custom.yml
+# Per team developer playbook
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+# Layout
+Layout/LineLength:
+  Max: 150
+
+# Metrics
+Metrics/AbcSize:
+  Max: 23
+Metrics/BlockLength:
+  Max: 43
+Metrics/ClassLength:
+  Max: 136
+Metrics/CyclomaticComplexity:
+  Max: 8
+Metrics/MethodLength:
+  Max: 18
+
+# Naming
+Naming/PredicateName:
+  NamePrefix:
+    - has

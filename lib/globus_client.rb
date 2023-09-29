@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/object/blank"
-require "faraday"
-require "faraday/retry"
-require "ostruct"
-require "singleton"
-require "zeitwerk"
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/blank'
+require 'faraday'
+require 'faraday/retry'
+require 'ostruct'
+require 'singleton'
+require 'zeitwerk'
 
 # Load the gem's internal dependencies: use Zeitwerk instead of needing to manually require classes
 Zeitwerk::Loader.for_gem.setup
@@ -22,7 +22,9 @@ class GlobusClient
     # @param transfer_endpoint_id [String] the transfer API endpoint ID supplied by Globus
     # @param transfer_url [String] the transfer API URL
     # @param auth_url [String] the authentication API URL
-    def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:, transfer_url: default_transfer_url, auth_url: default_auth_url)
+    # rubocop:disable Metrics/ParameterLists
+    def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:,
+                  transfer_url: default_transfer_url, auth_url: default_auth_url)
       instance.config = OpenStruct.new(
         # For the initial token, use a dummy value to avoid hitting any APIs
         # during configuration, allowing `with_token_refresh_when_unauthorized` to handle
@@ -34,7 +36,7 @@ class GlobusClient
         # NOTE: `nil` and blank string cannot be used as dummy values here as
         # they lead to a malformed request to be sent, which triggers an
         # exception not rescued by `with_token_refresh_when_unauthorized`
-        token: "a temporary dummy token to avoid hitting the API before it is needed",
+        token: 'a temporary dummy token to avoid hitting the API before it is needed',
         client_id:,
         client_secret:,
         uploads_directory:,
@@ -45,16 +47,17 @@ class GlobusClient
 
       self
     end
+    # rubocop:enable Metrics/ParameterLists
 
     delegate :config, :disallow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :total_size,
-      :user_valid?, :get_filenames, :has_files?, :delete, :get, :post, :put, to: :instance
+             :user_valid?, :get_filenames, :has_files?, :delete, :get, :post, :put, to: :instance
 
     def default_transfer_url
-      "https://transfer.api.globusonline.org"
+      'https://transfer.api.globusonline.org'
     end
 
     def default_auth_url
-      "https://auth.globus.org"
+      'https://auth.globus.org'
     end
   end
 
@@ -67,8 +70,8 @@ class GlobusClient
   def get(base_url:, path:, params: {}, content_type: nil)
     response = with_token_refresh_when_unauthorized do
       connection(base_url).get(path, params) do |request|
-        request.headers["Authorization"] = "Bearer #{config.token}"
-        request.headers["Content-Type"] = content_type if content_type
+        request.headers['Authorization'] = "Bearer #{config.token}"
+        request.headers['Content-Type'] = content_type if content_type
       end
     end
 
@@ -84,11 +87,11 @@ class GlobusClient
   # @param path [String] the path to the Globus API request
   # @param body [String] the body of the Globus API request
   # @param expected_response [#call] an expected response handler to allow short-circuiting the unexpected response
-  def post(base_url:, path:, body:, expected_response: ->(resp) { false })
+  def post(base_url:, path:, body:, expected_response: ->(_resp) { false })
     response = with_token_refresh_when_unauthorized do
       connection(base_url).post(path) do |request|
-        request.headers["Authorization"] = "Bearer #{config.token}"
-        request.headers["Content-Type"] = "application/json"
+        request.headers['Authorization'] = "Bearer #{config.token}"
+        request.headers['Content-Type'] = 'application/json'
         request.body = body.to_json
       end
     end
@@ -107,8 +110,8 @@ class GlobusClient
   def put(base_url:, path:, body:)
     response = with_token_refresh_when_unauthorized do
       connection(base_url).put(path) do |request|
-        request.headers["Authorization"] = "Bearer #{config.token}"
-        request.headers["Content-Type"] = "application/json"
+        request.headers['Authorization'] = "Bearer #{config.token}"
+        request.headers['Content-Type'] = 'application/json'
         request.body = body.to_json
       end
     end
@@ -126,7 +129,7 @@ class GlobusClient
   def delete(base_url:, path:)
     response = with_token_refresh_when_unauthorized do
       connection(base_url).delete(path) do |request|
-        request.headers["Authorization"] = "Bearer #{config.token}"
+        request.headers['Authorization'] = "Bearer #{config.token}"
       end
     end
 
@@ -159,10 +162,10 @@ class GlobusClient
   # NOTE: Can't use the `...` (argument forwarding) operator here because we
   #       want to route the keyword args to `Endpoint#new` and the block arg to
   #       `Endpoint#list_files`
-  def list_files(**keywords, &block)
+  def list_files(**keywords, &)
     Endpoint
       .new(self, **keywords)
-      .list_files(&block)
+      .list_files(&)
   end
 
   def file_count(...)

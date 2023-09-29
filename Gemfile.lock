@@ -37,7 +37,6 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     language_server-protocol (3.17.0.3)
-    lint_roller (1.1.0)
     minitest (5.20.0)
     parallel (1.23.0)
     parser (3.2.2.3)
@@ -95,18 +94,6 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
-    standard (1.31.1)
-      language_server-protocol (~> 3.17.0.2)
-      lint_roller (~> 1.0)
-      rubocop (~> 1.56.2)
-      standard-custom (~> 1.0.0)
-      standard-performance (~> 1.2)
-    standard-custom (1.0.2)
-      lint_roller (~> 1.0)
-      rubocop (~> 1.50)
-    standard-performance (1.2.0)
-      lint_roller (~> 1.1)
-      rubocop-performance (~> 1.19.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.4.2)
@@ -128,9 +115,9 @@ DEPENDENCIES
   globus_client!
   rake (~> 13.0)
   rspec (~> 3.0)
+  rubocop-performance
   rubocop-rspec
   simplecov
-  standard
   webmock
 
 BUNDLED WITH
