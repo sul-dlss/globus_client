@@ -25,7 +25,7 @@ class GlobusClient
     # rubocop:disable Metrics/ParameterLists
     def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:,
                   transfer_url: default_transfer_url, auth_url: default_auth_url)
-      instance.config = OpenStruct.new(
+      instance.config = OpenStruct.new( # rubocop:disable Style/OpenStructUse
         # For the initial token, use a dummy value to avoid hitting any APIs
         # during configuration, allowing `with_token_refresh_when_unauthorized` to handle
         # auto-magic token refreshing. Why not immediately get a valid token? Our apps

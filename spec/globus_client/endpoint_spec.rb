@@ -545,7 +545,7 @@ RSpec.describe GlobusClient::Endpoint do
 
   describe '#has_files?' do
     let(:path) { 'example/work123/version1' }
-    let(:list_response1) do
+    let(:list_response) do
       { DATA: [{ DATA_TYPE: 'file',
                  group: 'globus',
                  last_modified: '2022-12-07 19:23:33+00:00',
@@ -594,8 +594,8 @@ RSpec.describe GlobusClient::Endpoint do
         symlink_supported: false,
         total: 2 }
     end
-    let(:list_path2) { 'example/work123/version1/data' }
-    let(:list_response2) do
+    let(:list_path_data) { 'example/work123/version1/data' }
+    let(:list_response_data) do
       { DATA: [{ DATA_TYPE: 'file',
                  group: 'globus',
                  last_modified: '2022-12-07 19:23:33+00:00',
@@ -834,7 +834,7 @@ RSpec.describe GlobusClient::Endpoint do
 
     context 'with a path that exists' do
       let(:path) { 'example/work123/version1' }
-      let(:list_response1) do
+      let(:list_response) do
         { DATA: [{ DATA_TYPE: 'file',
                    group: 'globus',
                    last_modified: '2022-12-07 19:23:33+00:00',
@@ -883,8 +883,8 @@ RSpec.describe GlobusClient::Endpoint do
           symlink_supported: false,
           total: 2 }
       end
-      let(:list_path2) { 'example/work123/version1/data' }
-      let(:list_response2) do
+      let(:list_path_data) { 'example/work123/version1/data' }
+      let(:list_response_data) do
         { DATA: [{ DATA_TYPE: 'file',
                    group: 'globus',
                    last_modified: '2022-12-07 19:23:33+00:00',
@@ -937,9 +937,9 @@ RSpec.describe GlobusClient::Endpoint do
 
       before do
         stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{path}/")
-          .to_return(status: 200, body: list_response1.to_json)
-        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path2}/")
-          .to_return(status: 200, body: list_response2.to_json)
+          .to_return(status: 200, body: list_response.to_json)
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path_data}/")
+          .to_return(status: 200, body: list_response_data.to_json)
         stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/ls?path=/uploads/#{list_path3}/")
           .to_return(status: 200, body: list_response3.to_json)
       end
