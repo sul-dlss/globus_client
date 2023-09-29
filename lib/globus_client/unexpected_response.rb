@@ -39,7 +39,7 @@ class GlobusClient
       when 502
         raise EndpointError, "Other error with endpoint: #{response.status} #{response.body}."
       when 503
-        raise ServiceUnavailable, "The service is down for maintenance."
+        raise ServiceUnavailable, 'The service is down for maintenance.'
       else
         raise StandardError, "Unexpected response: #{response.status} #{response.body}."
       end

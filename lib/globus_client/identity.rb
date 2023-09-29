@@ -12,23 +12,23 @@ class GlobusClient
     def get_identity(user_id)
       response = client.get(
         base_url: client.config.auth_url,
-        path: "/v2/api/identities",
-        params: {usernames: user_id}
+        path: '/v2/api/identities',
+        params: { usernames: user_id }
       )
 
-      response["identities"].find { |id| id["username"] == user_id }
+      response['identities'].find { |id| id['username'] == user_id }
     end
 
     # @param user_id [String] the username in the form of an email addresss
     # @return [Boolean] whether the account has a valid status
     def valid?(user_id)
-      ["used", "private", "unused"].include?(get_identity(user_id)["status"])
+      %w[used private unused].include?(get_identity(user_id)['status'])
     end
 
     # @param user_id [String] the username in the form of an email addresss
     # @return [String] UUID for Globus identity
     def get_identity_id(user_id)
-      get_identity(user_id)["id"]
+      get_identity(user_id)['id']
     end
 
     private
