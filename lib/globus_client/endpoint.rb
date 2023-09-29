@@ -5,7 +5,7 @@ class GlobusClient
   class Endpoint
     PATH_SEPARATOR = '/'
 
-    FileInfo = Struct.new(:name, :size)
+    FileInfo = Struct.new(:name, :size) # rubocop:disable Lint/StructNewOverride
 
     # @param client [GlobusClient] a configured instance of the GlobusClient
     # @param path [String] the path to operate on

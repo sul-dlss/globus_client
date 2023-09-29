@@ -22,6 +22,7 @@ class GlobusClient
     # @param transfer_endpoint_id [String] the transfer API endpoint ID supplied by Globus
     # @param transfer_url [String] the transfer API URL
     # @param auth_url [String] the authentication API URL
+    # rubocop:disable Metrics/ParameterLists
     def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:,
                   transfer_url: default_transfer_url, auth_url: default_auth_url)
       instance.config = OpenStruct.new(
@@ -46,6 +47,7 @@ class GlobusClient
 
       self
     end
+    # rubocop:enable Metrics/ParameterLists
 
     delegate :config, :disallow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :total_size,
              :user_valid?, :get_filenames, :has_files?, :delete, :get, :post, :put, to: :instance
