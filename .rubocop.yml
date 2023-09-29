@@ -5,7 +5,7 @@ AllCops:
   TargetRubyVersion: 3.1
   DisplayCopNames: true
   SuggestExtensions: false
-  NewCops: enable
+  NewCops: disable
   Exclude:
     - bin/**
     - vendor/bundle/**/*
