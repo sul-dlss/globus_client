@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary = 'Interface for interacting with the Globus API.'
   spec.description = 'This provides API interaction with the Globus API'
   spec.homepage = 'https://github.com/sul-dlss/globus_client'
-  spec.required_ruby_version = '>= 2.6.0'
+  spec.required_ruby_version = '>= 3.1.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = 'https://github.com/sul-dlss/globus_client'
