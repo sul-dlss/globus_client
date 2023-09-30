@@ -5,7 +5,7 @@ require 'benchmark'
 require 'bundler/setup'
 require 'globus_client'
 
-Benchmark.bm(20) do |benchmark|
+Benchmark.bm(20) do |benchmark| # rubocop:disable Metrics/BlockLength
   user_id, path = *ARGV
 
   benchmark.report('Configure:') do
