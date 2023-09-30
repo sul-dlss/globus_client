@@ -2,10 +2,10 @@
 
 class GlobusClient
   # The namespace for endpoint API operations
-  class Endpoint
+  class Endpoint # rubocop:disable Metrics/ClassLength
     PATH_SEPARATOR = '/'
 
-    FileInfo = Struct.new(:name, :size) # rubocop:disable Lint/StructNewOverride
+    FileInfo = Struct.new(:name, :size)
 
     # @param client [GlobusClient] a configured instance of the GlobusClient
     # @param path [String] the path to operate on

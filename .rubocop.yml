@@ -1,4 +1,7 @@
+inherit_from: .rubocop_todo.yml
+
 require:
+  - rubocop-performance
   - rubocop-rspec
 
 AllCops:
@@ -17,18 +20,6 @@ RSpec/MultipleMemoizedHelpers:
 # Layout
 Layout/LineLength:
   Max: 150
-
-# Metrics
-Metrics/AbcSize:
-  Max: 23
-Metrics/BlockLength:
-  Max: 43
-Metrics/ClassLength:
-  Max: 136
-Metrics/CyclomaticComplexity:
-  Max: 8
-Metrics/MethodLength:
-  Max: 18
 
 # Naming
 Naming/PredicateName:

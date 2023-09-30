@@ -4,7 +4,6 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
 require 'faraday'
 require 'faraday/retry'
-require 'ostruct'
 require 'singleton'
 require 'zeitwerk'
 
@@ -12,7 +11,7 @@ require 'zeitwerk'
 Zeitwerk::Loader.for_gem.setup
 
 # Client for interacting with the Globus API
-class GlobusClient
+class GlobusClient # rubocop:disable Metrics/ClassLength
   include Singleton
 
   class << self
@@ -25,7 +24,7 @@ class GlobusClient
     # rubocop:disable Metrics/ParameterLists
     def configure(client_id:, client_secret:, uploads_directory:, transfer_endpoint_id:,
                   transfer_url: default_transfer_url, auth_url: default_auth_url)
-      instance.config = OpenStruct.new(
+      instance.config = Config.new(
         # For the initial token, use a dummy value to avoid hitting any APIs
         # during configuration, allowing `with_token_refresh_when_unauthorized` to handle
         # auto-magic token refreshing. Why not immediately get a valid token? Our apps
@@ -199,6 +198,8 @@ class GlobusClient
   end
 
   private
+
+  Config = Struct.new(:client_id, :auth_url, :client_secret, :transfer_endpoint_id, :transfer_url, :uploads_directory, :token, keyword_init: true)
 
   def connection(base_url)
     Faraday.new(url: base_url) do |conn|
