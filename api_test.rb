@@ -1,41 +1,41 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "benchmark"
-require "bundler/setup"
-require "globus_client"
+require 'benchmark'
+require 'bundler/setup'
+require 'globus_client'
 
 Benchmark.bm(20) do |benchmark| # rubocop:disable Metrics/BlockLength
   user_id, path = *ARGV
 
-  benchmark.report("Configure:") do
+  benchmark.report('Configure:') do
     GlobusClient.configure(
-      client_id: ENV.fetch("GLOBUS_CLIENT_ID", nil),
-      client_secret: ENV.fetch("GLOBUS_CLIENT_SECRET", nil),
-      uploads_directory: ENV.fetch("GLOBUS_UPLOADS_DIRECTORY", nil),
-      transfer_endpoint_id: ENV.fetch("GLOBUS_ENDPOINT", nil)
+      client_id: ENV.fetch('GLOBUS_CLIENT_ID', nil),
+      client_secret: ENV.fetch('GLOBUS_CLIENT_SECRET', nil),
+      uploads_directory: ENV.fetch('GLOBUS_UPLOADS_DIRECTORY', nil),
+      transfer_endpoint_id: ENV.fetch('GLOBUS_ENDPOINT', nil)
     )
   end
 
-  benchmark.report("mkdir:") do
+  benchmark.report('mkdir:') do
     GlobusClient.mkdir(user_id:, path:)
   end
 
-  benchmark.report("user_valid?:") do
+  benchmark.report('user_valid?:') do
     @user_exists = GlobusClient.user_valid?(user_id)
   end
 
-  benchmark.report("before_perms:") do
+  benchmark.report('before_perms:') do
     # Not part of the public API but this allows us to test access changes
     @before_permissions = GlobusClient::Endpoint.new(GlobusClient.instance, user_id:,
-      path:).send(:access_rule)["permissions"]
+                                                                            path:).send(:access_rule)['permissions']
   end
 
-  benchmark.report("has_files?:") do
+  benchmark.report('has_files?:') do
     @has_files = GlobusClient.has_files?(user_id:, path:)
   end
 
-  benchmark.report("list_files:") do
+  benchmark.report('list_files:') do
     GlobusClient.list_files(user_id:, path:) do |files|
       @files_count = files.count
       @total_size = files.sum(&:size)
@@ -43,14 +43,14 @@ Benchmark.bm(20) do |benchmark| # rubocop:disable Metrics/BlockLength
     end
   end
 
-  benchmark.report("disallow_writes:") do
+  benchmark.report('disallow_writes:') do
     GlobusClient.disallow_writes(user_id:, path:)
   end
 
-  benchmark.report("after_perms:") do
+  benchmark.report('after_perms:') do
     # Not part of the public API but this allows us to test access changes
     @after_permissions = GlobusClient::Endpoint.new(GlobusClient.instance, user_id:,
-      path:).send(:access_rule)["permissions"]
+                                                                           path:).send(:access_rule)['permissions']
   end
 
   puts "User #{user_id} exists: #{@user_exists}"
