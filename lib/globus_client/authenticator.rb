@@ -15,11 +15,11 @@ class GlobusClient
 
     # Request an access_token
     def token
-      response = connection.post('/v2/oauth2/token', form_data)
+      response = connection.post("/v2/oauth2/token", form_data)
 
       UnexpectedResponse.call(response) unless response.success?
 
-      JSON.parse(response.body)['access_token']
+      JSON.parse(response.body)["access_token"]
     end
 
     private
@@ -34,9 +34,9 @@ class GlobusClient
       {
         client_id:,
         client_secret:,
-        encoding: 'form',
-        grant_type: 'client_credentials',
-        scope: 'urn:globus:auth:scope:transfer.api.globus.org:all'
+        encoding: "form",
+        grant_type: "client_credentials",
+        scope: "urn:globus:auth:scope:transfer.api.globus.org:all"
       }
     end
   end

@@ -3,7 +3,7 @@
 class GlobusClient
   # The namespace for endpoint API operations
   class Endpoint # rubocop:disable Metrics/ClassLength
-    PATH_SEPARATOR = '/'
+    PATH_SEPARATOR = "/"
 
     FileInfo = Struct.new(:name, :size)
 
@@ -33,9 +33,9 @@ class GlobusClient
         client.post(
           base_url: client.config.transfer_url,
           path: "#{transfer_path}/mkdir",
-          body: { DATA_TYPE: 'mkdir', path: },
+          body: {DATA_TYPE: "mkdir", path:},
           expected_response: lambda { |resp|
-                               resp.status == 502 && JSON.parse(resp.body)['code'] == 'ExternalError.MkdirFailed.Exists'
+                               resp.status == 502 && JSON.parse(resp.body)["code"] == "ExternalError.MkdirFailed.Exists"
                              }
         )
       end
@@ -43,12 +43,12 @@ class GlobusClient
 
     # Assign a user read/write permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
     def allow_writes
-      access_request(permissions: 'rw')
+      access_request(permissions: "rw")
     end
 
     # Assign a user read-only permissions for a directory https://docs.globus.org/api/transfer/acl/#rest_access_create
     def disallow_writes
-      update_access_request(permissions: 'r')
+      update_access_request(permissions: "r")
     end
 
     # Delete the access rule https://docs.globus.org/api/transfer/acl/#delete_access_rule
@@ -100,24 +100,24 @@ class GlobusClient
       response = client.get(
         base_url: client.config.transfer_url,
         path: "#{transfer_path}/ls",
-        params: { path: filepath }
+        params: {path: filepath}
       )
 
-      response['DATA']
-        .select { |object| object['type'] == 'file' }
+      response["DATA"]
+        .select { |object| object["type"] == "file" }
         .each do |file|
         return true if return_presence
 
-        files << FileInfo.new("#{filepath}#{file['name']}", file['size'])
+        files << FileInfo.new("#{filepath}#{file["name"]}", file["size"])
       end
 
-      response['DATA']
-        .select { |object| object['type'] == 'dir' }
+      response["DATA"]
+        .select { |object| object["type"] == "dir" }
         .each do |dir|
         # NOTE: This allows the recursive method to short-circuit iff ls_path
         #       returns true, which only happens when return_presence is true
         #       and the first file is found in the ls operation.
-        return true if ls_path("#{filepath}#{dir['name']}/", files, return_presence:) == true
+        return true if ls_path("#{filepath}#{dir["name"]}/", files, return_presence:) == true
       end
 
       return false if return_presence
@@ -133,8 +133,8 @@ class GlobusClient
           base_url: client.config.transfer_url,
           path: access_path,
           body: {
-            DATA_TYPE: 'access',
-            principal_type: 'identity',
+            DATA_TYPE: "access",
+            principal_type: "identity",
             principal: globus_identity_id,
             path: full_path,
             permissions:,
@@ -151,7 +151,7 @@ class GlobusClient
         base_url: client.config.transfer_url,
         path: "#{access_path}/#{access_rule_id}",
         body: {
-          DATA_TYPE: 'access',
+          DATA_TYPE: "access",
           permissions:
         }
       )
@@ -161,14 +161,14 @@ class GlobusClient
       response = client.get(
         base_url: client.config.transfer_url,
         path: access_list_path,
-        content_type: 'application/json'
+        content_type: "application/json"
       )
 
-      response.fetch('DATA').find { |acl| acl['path'] == full_path }
+      response.fetch("DATA").find { |acl| acl["path"] == full_path }
     end
 
     def access_rule_id
-      access_rule&.fetch('id')
+      access_rule&.fetch("id")
     end
 
     def transfer_path
