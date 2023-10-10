@@ -10,6 +10,7 @@ class GlobusClient
     # @param client [GlobusClient] a configured instance of the GlobusClient
     # @param path [String] the path to operate on
     # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
+    # @param notify_email [Boolean] indicates if we should ask Globus to send emails on access change (default: true)
     def initialize(client, path:, user_id:, notify_email: true)
       @client = client
       @user_id = user_id
