@@ -10,10 +10,11 @@ class GlobusClient
     # @param client [GlobusClient] a configured instance of the GlobusClient
     # @param path [String] the path to operate on
     # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
-    def initialize(client, path:, user_id:)
+    def initialize(client, path:, user_id:, notify_email: true)
       @client = client
       @user_id = user_id
       @path = path
+      @notify_email = notify_email
     end
 
     def has_files?
@@ -63,7 +64,7 @@ class GlobusClient
 
     private
 
-    attr_reader :client, :path, :user_id
+    attr_reader :client, :path, :user_id, :notify_email
 
     def globus_identity_id
       Identity.new(client).get_identity_id(user_id)
@@ -129,17 +130,18 @@ class GlobusClient
       if access_rule_id
         update_access_request(permissions:)
       else
+        body = {
+          DATA_TYPE: 'access',
+          principal_type: 'identity',
+          principal: globus_identity_id,
+          path: full_path,
+          permissions:
+        }
+        body[:notify_email] = user_id if notify_email
         client.post(
           base_url: client.config.transfer_url,
           path: access_path,
-          body: {
-            DATA_TYPE: 'access',
-            principal_type: 'identity',
-            principal: globus_identity_id,
-            path: full_path,
-            permissions:,
-            notify_email: user_id
-          }
+          body:
         )
       end
     end
