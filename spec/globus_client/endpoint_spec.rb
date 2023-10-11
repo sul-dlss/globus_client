@@ -949,4 +949,73 @@ RSpec.describe GlobusClient::Endpoint do
       end
     end
   end
+
+  context 'with notify email setting' do
+    subject(:endpoint) { described_class.new(client, user_id:, path:, notify_email:) }
+
+    let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: 'example') }
+    let(:access_list_response) do
+      {
+        DATA_TYPE: 'access_list',
+        endpoint: transfer_endpoint_id,
+        DATA: [
+          {
+            DATA_TYPE: 'access',
+            create_time: '2022-11-22T16:08:24+00:00',
+            id: 'e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080',
+            path: '/foo/bar/',
+            permissions: 'rw',
+            principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+            principal_type: 'identity',
+            role_id: nil,
+            role_type: nil
+          }
+        ]
+      }
+    end
+
+    before do
+      allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
+      allow(client).to receive(:post)
+      stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        .to_return(status: 200, body: access_list_response.to_json)
+    end
+
+    context 'when notify_email is false' do
+      let(:notify_email) { false }
+      let(:params) do
+        { base_url: 'https://transfer.api.example.org',
+          body: { DATA_TYPE: 'access',
+                  path: '/uploads/example/work123/version1/',
+                  permissions: 'rw',
+                  principal: 'example',
+                  principal_type: 'identity' },
+          path: '/v0.10/endpoint/NOT_A_REAL_ENDPOINT/access' }
+      end
+
+      it 'leaves off notify_email parameter for when setting access' do
+        endpoint.allow_writes
+        expect(client).to have_received(:post).with(params)
+      end
+    end
+
+    context 'when notify_email is true' do
+      let(:notify_email) { true }
+      let(:params) do
+        { base_url: 'https://transfer.api.example.org',
+          body: { DATA_TYPE: 'access',
+                  notify_email: 'example@stanford.edu',
+                  path: '/uploads/example/work123/version1/',
+                  permissions: 'rw',
+                  principal: 'example',
+                  principal_type: 'identity' },
+          path: '/v0.10/endpoint/NOT_A_REAL_ENDPOINT/access' }
+      end
+
+      it 'adds notify_email parameter for when setting access' do
+        endpoint.allow_writes
+        expect(client).to have_received(:post).with(params)
+      end
+    end
+  end
 end
