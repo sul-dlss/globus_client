@@ -22,7 +22,7 @@ RSpec.describe GlobusClient::Authenticator do
 
   describe '.token' do
     let(:instance) do
-      described_class.new(client_id, client_secret, auth_url)
+      described_class.new
     end
 
     before do
@@ -31,13 +31,23 @@ RSpec.describe GlobusClient::Authenticator do
     end
 
     it 'invokes #token on a new instance' do
-      described_class.token(client_id, client_secret, auth_url)
+      described_class.token
       expect(instance).to have_received(:token).once
     end
   end
 
   describe '#token' do
-    subject(:authenticator) { described_class.new(client_id, client_secret, auth_url) }
+    subject(:authenticator) { described_class.new }
+
+    before do
+      GlobusClient.configure(
+        auth_url:,
+        client_id:,
+        client_secret:,
+        transfer_endpoint_id: 'not_a_real_endpoint',
+        uploads_directory: '/fake_uploads/'
+      )
+    end
 
     it 'parses the token from the response' do
       expect(authenticator.token).to eq 'a_long_silly_token'

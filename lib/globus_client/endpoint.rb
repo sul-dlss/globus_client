@@ -7,12 +7,10 @@ class GlobusClient
 
     FileInfo = Struct.new(:name, :size)
 
-    # @param client [GlobusClient] a configured instance of the GlobusClient
     # @param path [String] the path to operate on
     # @param user_id [String] a Globus user ID (e.g., a @stanford.edu email address)
     # @param notify_email [Boolean] indicates if we should ask Globus to send emails on access change (default: true)
-    def initialize(client, path:, user_id:, notify_email: true)
-      @client = client
+    def initialize(path:, user_id:, notify_email: true)
       @user_id = user_id
       @path = path
       @notify_email = notify_email
@@ -32,8 +30,8 @@ class GlobusClient
     def mkdir
       # transfer API does not support recursive directory creation
       paths.each do |path|
-        client.post(
-          base_url: client.config.transfer_url,
+        GlobusClient.instance.post(
+          base_url: GlobusClient.config.transfer_url,
           path: "#{transfer_path}/mkdir",
           body: { DATA_TYPE: 'mkdir', path: },
           expected_response: lambda { |resp|
@@ -57,18 +55,18 @@ class GlobusClient
     def delete_access_rule
       raise(StandardError, "Access rule not found for #{path}") unless access_rule_id
 
-      client.delete(
-        base_url: client.config.transfer_url,
+      GlobusClient.instance.delete(
+        base_url: GlobusClient.config.transfer_url,
         path: "#{access_path}/#{access_rule_id}"
       )
     end
 
     private
 
-    attr_reader :client, :path, :user_id, :notify_email
+    attr_reader :path, :user_id, :notify_email
 
     def globus_identity_id
-      Identity.new(client).get_identity_id(user_id)
+      Identity.new.get_identity_id(user_id)
     end
 
     # Builds up a path from a list of path elements. E.g., input would look like:
@@ -78,7 +76,7 @@ class GlobusClient
     def paths
       @paths ||= path_segments.map.with_index do |_segment, index|
         File
-          .join(client.config.uploads_directory, path_segments.slice(..index))
+          .join(GlobusClient.config.uploads_directory, path_segments.slice(..index))
           .concat(PATH_SEPARATOR)
       end
     end
@@ -99,8 +97,8 @@ class GlobusClient
     # @param files [Array<FileInfo>] an array of FileInfo structs, each of which has a name and a size
     # @param return_presence [Boolean] if true, return a boolean to indicate if any files at all are present, short-circuiting the recursive operation
     def ls_path(filepath, files, return_presence: false)
-      response = client.get(
-        base_url: client.config.transfer_url,
+      response = GlobusClient.instance.get(
+        base_url: GlobusClient.config.transfer_url,
         path: "#{transfer_path}/ls",
         params: { path: filepath }
       )
@@ -139,8 +137,8 @@ class GlobusClient
           permissions:
         }
         body[:notify_email] = user_id if notify_email
-        client.post(
-          base_url: client.config.transfer_url,
+        GlobusClient.instance.post(
+          base_url: GlobusClient.config.transfer_url,
           path: access_path,
           body:
         )
@@ -150,8 +148,8 @@ class GlobusClient
     def update_access_request(permissions:)
       raise(StandardError, "Access rule not found for #{path}") unless access_rule_id
 
-      client.put(
-        base_url: client.config.transfer_url,
+      GlobusClient.instance.put(
+        base_url: GlobusClient.config.transfer_url,
         path: "#{access_path}/#{access_rule_id}",
         body: {
           DATA_TYPE: 'access',
@@ -161,8 +159,8 @@ class GlobusClient
     end
 
     def access_rule
-      response = client.get(
-        base_url: client.config.transfer_url,
+      response = GlobusClient.instance.get(
+        base_url: GlobusClient.config.transfer_url,
         path: access_list_path,
         content_type: 'application/json'
       )
@@ -175,15 +173,15 @@ class GlobusClient
     end
 
     def transfer_path
-      "/v0.10/operation/endpoint/#{client.config.transfer_endpoint_id}"
+      "/v0.10/operation/endpoint/#{GlobusClient.config.transfer_endpoint_id}"
     end
 
     def access_path
-      "/v0.10/endpoint/#{client.config.transfer_endpoint_id}/access"
+      "/v0.10/endpoint/#{GlobusClient.config.transfer_endpoint_id}/access"
     end
 
     def access_list_path
-      "/v0.10/endpoint/#{client.config.transfer_endpoint_id}/access_list"
+      "/v0.10/endpoint/#{GlobusClient.config.transfer_endpoint_id}/access_list"
     end
   end
 end

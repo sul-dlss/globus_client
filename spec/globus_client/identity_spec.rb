@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe GlobusClient::Identity do
-  subject(:identity) { described_class.new(client) }
+  subject(:identity) { described_class.new }
 
-  let(:auth_url) { 'https://auth.example.org' }
-  let(:client) do
+  before do
     GlobusClient.configure(
       auth_url:,
       client_id: 'client_id',
@@ -13,6 +12,8 @@ RSpec.describe GlobusClient::Identity do
       uploads_directory: '/fake_uploads/'
     )
   end
+
+  let(:auth_url) { 'https://auth.example.org' }
   let(:user_id) { 'example@stanford.edu' }
   let(:token_response) do
     {

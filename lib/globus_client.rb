@@ -140,7 +140,7 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
   end
 
   def mkdir(...)
-    Endpoint.new(self, ...).tap do |endpoint|
+    Endpoint.new(...).tap do |endpoint|
       endpoint.mkdir
       endpoint.allow_writes
     end
@@ -148,13 +148,13 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
 
   def disallow_writes(...)
     Endpoint
-      .new(self, ...)
+      .new(...)
       .disallow_writes
   end
 
   def delete_access_rule(...)
     Endpoint
-      .new(self, ...)
+      .new(...)
       .delete_access_rule
   end
 
@@ -163,37 +163,37 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
   #       `Endpoint#list_files`
   def list_files(**keywords, &)
     Endpoint
-      .new(self, **keywords)
+      .new(**keywords)
       .list_files(&)
   end
 
   def file_count(...)
     Endpoint
-      .new(self, ...)
+      .new(...)
       .list_files { |files| return files.count }
   end
 
   def total_size(...)
     Endpoint
-      .new(self, ...)
+      .new(...)
       .list_files { |files| return files.sum(&:size) }
   end
 
   def get_filenames(...)
     Endpoint
-      .new(self, ...)
+      .new(...)
       .list_files { |files| return files.map(&:name) }
   end
 
   def has_files?(...)
     Endpoint
-      .new(self, ...)
+      .new(...)
       .has_files?
   end
 
   def user_valid?(...)
     Identity
-      .new(self)
+      .new
       .valid?(...)
   end
 
@@ -230,7 +230,7 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
 
     # if unauthorized, token has likely expired. try to get a new token and then retry the same request(s).
     if response.status == 401
-      config.token = Authenticator.token(config.client_id, config.client_secret, config.auth_url)
+      config.token = Authenticator.token
       response = yield
     end
 

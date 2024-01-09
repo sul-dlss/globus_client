@@ -3,14 +3,8 @@
 class GlobusClient
   # The namespace for the "login" command
   class Authenticator
-    def self.token(client_id, client_secret, auth_url)
-      new(client_id, client_secret, auth_url).token
-    end
-
-    def initialize(client_id, client_secret, auth_url)
-      @client_id = client_id
-      @client_secret = client_secret
-      @auth_url = auth_url
+    def self.token
+      new.token
     end
 
     # Request an access_token
@@ -24,16 +18,14 @@ class GlobusClient
 
     private
 
-    attr_reader :client_id, :client_secret, :auth_url
-
     def connection
-      Faraday.new(url: auth_url)
+      Faraday.new(url: GlobusClient.config.auth_url)
     end
 
     def form_data
       {
-        client_id:,
-        client_secret:,
+        client_id: GlobusClient.config.client_id,
+        client_secret: GlobusClient.config.client_secret,
         encoding: 'form',
         grant_type: 'client_credentials',
         scope: 'urn:globus:auth:scope:transfer.api.globus.org:all'
