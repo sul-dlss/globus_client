@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe GlobusClient::Endpoint do
-  subject(:endpoint) { described_class.new(client, user_id:, path:) }
+  subject(:endpoint) { described_class.new(user_id:, path:) }
 
-  let(:client) do
+  before do
     GlobusClient.configure(
       client_id: 'client_id',
       client_secret: 'client_secret',
@@ -12,6 +12,7 @@ RSpec.describe GlobusClient::Endpoint do
       uploads_directory:
     )
   end
+
   let(:transfer_endpoint_id) { 'NOT_A_REAL_ENDPOINT' }
   let(:transfer_url) { 'https://transfer.api.example.org' }
   let(:uploads_directory) { '/uploads/' }
@@ -522,7 +523,7 @@ RSpec.describe GlobusClient::Endpoint do
 
   context 'when the token needs to be refreshed' do
     before do
-      stub_request(:post, "#{client.config.auth_url}/v2/oauth2/token")
+      stub_request(:post, "#{GlobusClient.config.auth_url}/v2/oauth2/token")
         .to_return(
           { status: 200, body: '{"access_token" : "new_token"}' }
         )
@@ -951,7 +952,7 @@ RSpec.describe GlobusClient::Endpoint do
   end
 
   context 'with notify email setting' do
-    subject(:endpoint) { described_class.new(client, user_id:, path:, notify_email:) }
+    subject(:endpoint) { described_class.new(user_id:, path:, notify_email:) }
 
     let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: 'example') }
     let(:access_list_response) do
@@ -976,7 +977,7 @@ RSpec.describe GlobusClient::Endpoint do
 
     before do
       allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
-      allow(client).to receive(:post)
+      allow(GlobusClient.instance).to receive(:post)
       stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
         .to_return(status: 200, body: access_list_response.to_json)
     end
@@ -995,7 +996,7 @@ RSpec.describe GlobusClient::Endpoint do
 
       it 'leaves off notify_email parameter for when setting access' do
         endpoint.allow_writes
-        expect(client).to have_received(:post).with(params)
+        expect(GlobusClient.instance).to have_received(:post).with(params)
       end
     end
 
@@ -1014,7 +1015,7 @@ RSpec.describe GlobusClient::Endpoint do
 
       it 'adds notify_email parameter for when setting access' do
         endpoint.allow_writes
-        expect(client).to have_received(:post).with(params)
+        expect(GlobusClient.instance).to have_received(:post).with(params)
       end
     end
   end

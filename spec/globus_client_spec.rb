@@ -24,7 +24,7 @@ RSpec.describe GlobusClient do
   end
 
   it 'has a version number' do
-    expect(GlobusClient::VERSION).not_to be_nil
+    expect(described_class::VERSION).not_to be_nil
   end
 
   it 'has singleton behavior' do
@@ -144,12 +144,12 @@ RSpec.describe GlobusClient do
 
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
-        allow(GlobusClient::Authenticator).to receive(:token).and_return('a_token', 'new_token')
-        allow(fake_identity).to receive(:valid?).and_raise(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        allow(described_class::Authenticator).to receive(:token).and_return('a_token', 'new_token')
+        allow(fake_identity).to receive(:valid?).and_raise(described_class::UnexpectedResponse::UnauthorizedError)
       end
 
       it 'raises an error with Identity#valid?' do
-        expect { client.user_valid?('bogus') }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        expect { client.user_valid?('bogus') }.to raise_error(described_class::UnexpectedResponse::UnauthorizedError)
       end
     end
   end
