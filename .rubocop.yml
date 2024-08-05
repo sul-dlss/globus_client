@@ -23,5 +23,6 @@ Layout/LineLength:
 
 # Naming
 Naming/PredicateName:
-  NamePrefix:
-    - has
+  ForbiddenPrefixes:
+    - is_
+    - have_
