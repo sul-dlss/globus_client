@@ -1,7 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/globus_client.svg)](https://badge.fury.io/rb/globus_client)
 [![CircleCI](https://circleci.com/gh/sul-dlss/globus_client.svg?style=svg)](https://circleci.com/gh/sul-dlss/globus_client)
-[![Code Climate](https://codeclimate.com/github/sul-dlss/globus_client/badges/gpa.svg)](https://codeclimate.com/github/sul-dlss/globus_client)
-[![Code Climate Test Coverage](https://api.codeclimate.com/v1/badges/8e6bf1a5d3fc86a6fbd0/test_coverage)](https://codeclimate.com/github/sul-dlss/globus_client/test_coverage)
+[![codecov](https://codecov.io/github/sul-dlss/globus_client/graph/badge.svg?token=ARR042OHR8)](https://codecov.io/github/sul-dlss/globus_client)
 
 # GlobusClient
 
