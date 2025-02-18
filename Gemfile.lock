@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     globus_client (0.14.0)
-      activesupport (>= 4.2, < 8)
+      activesupport (>= 4.2)
       faraday
       faraday-retry
       zeitwerk
@@ -10,7 +10,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.2.2.1)
+    activesupport (8.0.1)
       base64
       benchmark (>= 0.3)
       bigdecimal
@@ -22,6 +22,7 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.2)
@@ -50,7 +51,7 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.9.1)
     language_server-protocol (3.17.0.4)
-    logger (1.6.5)
+    logger (1.6.6)
     minitest (5.25.4)
     net-http (0.6.0)
       uri
