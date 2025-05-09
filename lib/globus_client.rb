@@ -48,7 +48,7 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     end
     # rubocop:enable Metrics/ParameterLists
 
-    delegate :config, :disallow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :total_size,
+    delegate :config, :disallow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :rename, :total_size,
              :user_valid?, :get_filenames, :has_files?, :delete, :get, :post, :put, to: :instance
 
     def default_transfer_url
@@ -156,6 +156,12 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     Endpoint
       .new(...)
       .delete_access_rule
+  end
+
+  def rename(new_path:, **args)
+    Endpoint
+      .new(**args)
+      .delete_access_rule(new_path:)
   end
 
   # NOTE: Can't use the `...` (argument forwarding) operator here because we
