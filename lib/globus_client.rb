@@ -48,8 +48,8 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     end
     # rubocop:enable Metrics/ParameterLists
 
-    delegate :config, :disallow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :rename, :total_size,
-             :user_valid?, :get_filenames, :has_files?, :delete, :get, :post, :put, to: :instance
+    delegate :config, :disallow_writes, :allow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :rename, :total_size,
+             :user_valid?, :get_filenames, :has_files?, :exists?, :delete, :get, :post, :put, to: :instance
 
     def default_transfer_url
       'https://transfer.api.globusonline.org'
@@ -152,6 +152,12 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
       .disallow_writes
   end
 
+  def allow_writes(...)
+    Endpoint
+      .new(...)
+      .allow_writes
+  end
+
   def delete_access_rule(...)
     Endpoint
       .new(...)
@@ -161,7 +167,7 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
   def rename(new_path:, **args)
     Endpoint
       .new(**args)
-      .delete_access_rule(new_path:)
+      .rename(new_path:)
   end
 
   # NOTE: Can't use the `...` (argument forwarding) operator here because we
@@ -195,6 +201,12 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     Endpoint
       .new(...)
       .has_files?
+  end
+
+  def exists?(...)
+    Endpoint
+      .new(...)
+      .exists?
   end
 
   def user_valid?(...)

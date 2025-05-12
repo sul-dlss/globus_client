@@ -186,7 +186,7 @@ RSpec.describe GlobusClient do
   end
 
   # Test public API methods in the client that are sent to the Endpoint using the same names
-  %i[delete_access_rule disallow_writes has_files? list_files mkdir].each do |method|
+  %i[delete_access_rule disallow_writes has_files? list_files mkdir allow_writes exists?].each do |method|
     describe ".#{method}" do
       let(:fake_instance) { instance_double(described_class) }
 
@@ -213,6 +213,34 @@ RSpec.describe GlobusClient do
         client.public_send(method)
         expect(fake_endpoint).to have_received(method).once
       end
+    end
+  end
+
+  describe '.rename' do
+    let(:fake_instance) { instance_double(described_class) }
+
+    before do
+      allow(described_class).to receive(:instance).and_return(fake_instance)
+      allow(fake_instance).to receive(:rename)
+    end
+
+    it 'invokes instance#rename' do
+      described_class.public_send(:rename, new_path: 'foo/bar/')
+      expect(fake_instance).to have_received(:rename).with(new_path: 'foo/bar/').once
+    end
+  end
+
+  describe '#rename' do
+    let(:fake_endpoint) { instance_double(described_class::Endpoint, allow_writes: nil) }
+
+    before do
+      allow(described_class::Endpoint).to receive(:new).and_return(fake_endpoint)
+      allow(fake_endpoint).to receive(:rename)
+    end
+
+    it 'invokes Endpoint#rename' do
+      client.public_send(:rename, new_path: 'foo/bar/')
+      expect(fake_endpoint).to have_received(:rename).with(new_path: 'foo/bar/').once
     end
   end
 end

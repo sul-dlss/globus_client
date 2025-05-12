@@ -20,17 +20,18 @@ RSpec.describe GlobusClient::Endpoint do
   let(:path) { "example/work#{work_id}/version#{work_version}" }
   let(:work_id) { '123' }
   let(:work_version) { '1' }
-  let(:mkdir_response) do
-    {
-      DATA_TYPE: 'mkdir_result',
-      code: 'DirectoryCreated',
-      message: 'The directory was created successfully',
-      request_id: '12345',
-      resource: '/operation/endpoint/an-endpoint-identifier/mkdir'
-    }
-  end
 
   describe '#mkdir' do
+    let(:mkdir_response) do
+      {
+        DATA_TYPE: 'mkdir_result',
+        code: 'DirectoryCreated',
+        message: 'The directory was created successfully',
+        request_id: '12345',
+        resource: '/operation/endpoint/an-endpoint-identifier/mkdir'
+      }
+    end
+
     context 'when creating a directory that does not exist' do
       before do
         stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/mkdir")
@@ -947,6 +948,84 @@ RSpec.describe GlobusClient::Endpoint do
 
       it 'returns a list of FileInfo instances' do
         expect(endpoint.list_files).to eq(filelist)
+      end
+    end
+  end
+
+  describe '#exists?' do
+    context 'when path exists' do
+      let(:stat_response) do
+        {
+          DATA_TYPE: 'file',
+          group: 'agroup',
+          last_modified: '2024-01-02 03:45:06+00:00',
+          link_group: nil,
+          link_last_modified: nil,
+          link_size: nil,
+          link_target: nil,
+          link_user: nil,
+          name: path,
+          permissions: '0755',
+          size: 4096,
+          type: 'dir',
+          user: 'auser'
+        }
+      end
+
+      before do
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/stat?path=#{path}")
+          .to_return(status: 200, body: stat_response.to_json)
+      end
+
+      it 'returns true' do
+        expect(endpoint.exists?).to be true
+      end
+    end
+
+    context 'when path does not exist' do
+      before do
+        stub_request(:get, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/stat?path=#{path}")
+          .to_return(status: 404)
+      end
+
+      it 'returns false' do
+        expect(endpoint.exists?).to be false
+      end
+    end
+  end
+
+  describe '#rename' do
+    context 'when successful' do
+      let(:rename_response) do
+        {
+          DATA_TYPE: 'result',
+          code: 'FileRenamed',
+          message: 'File or directory renamed successfully',
+          request_id: 'ShbIUzrWT',
+          resource: '/operation/endpoint/6c54cade-bde5-45c1-bdea-f4bd71dba2cc/rename'
+        }
+      end
+
+      before do
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/rename")
+          .with(body: { DATA_TYPE: 'rename', old_path: 'example/work123/version1', new_path: '/move/here' }.to_json)
+          .to_return(status: 200, body: rename_response.to_json)
+      end
+
+      it 'does not raise an exception' do
+        expect { endpoint.rename(new_path: '/move/here') }.not_to raise_error
+      end
+    end
+
+    context 'when invalid path is provided' do
+      before do
+        stub_request(:post, "#{transfer_url}/v0.10/operation/endpoint/#{transfer_endpoint_id}/rename")
+          .with(body: { DATA_TYPE: 'rename', old_path: 'example/work123/version1', new_path: '/move/here' }.to_json)
+          .to_return(status: 400, body: '')
+      end
+
+      it 'raises an exception' do
+        expect { endpoint.rename(new_path: '/move/here') }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
       end
     end
   end
