@@ -49,7 +49,8 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     # rubocop:enable Metrics/ParameterLists
 
     delegate :config, :disallow_writes, :allow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :rename, :total_size,
-             :user_valid?, :get_filenames, :has_files?, :exists?, :delete, :get, :post, :put, to: :instance
+             :user_valid?, :get_filenames, :has_files?, :exists?, :task_list, :tasks_in_progress?,
+             :delete, :get, :post, :put, to: :instance
 
     def default_transfer_url
       'https://transfer.api.globusonline.org'
@@ -213,6 +214,18 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     Identity
       .new
       .valid?(...)
+  end
+
+  def task_list(...)
+    EndpointManager
+      .new
+      .task_list(...)
+  end
+
+  def tasks_in_progress?(...)
+    EndpointManager
+      .new
+      .tasks_in_progress?(...)
   end
 
   private
