@@ -61,6 +61,28 @@ class GlobusClient
       )
     end
 
+    # Renames a directory https://docs.globus.org/api/transfer/file_operations/#rename
+    def rename(new_path:)
+      GlobusClient.instance.post(
+        base_url: GlobusClient.config.transfer_url,
+        path: "#{transfer_path}/rename",
+        body: { DATA_TYPE: 'rename', old_path: path, new_path: }
+      )
+    end
+
+    # @returns true if the file / directory exists at the path
+    # See https://docs.globus.org/api/transfer/file_operations/#stat
+    def exists?
+      GlobusClient.instance.get(
+        base_url: GlobusClient.config.transfer_url,
+        path: "#{transfer_path}/stat",
+        params: { path: }
+      )
+      true
+    rescue GlobusClient::UnexpectedResponse::ResourceNotFound
+      false
+    end
+
     private
 
     attr_reader :path, :user_id, :notify_email
