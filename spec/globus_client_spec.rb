@@ -243,4 +243,35 @@ RSpec.describe GlobusClient do
       expect(fake_endpoint).to have_received(:rename).with(new_path: 'foo/bar/').once
     end
   end
+
+  # Test public API methods in the client that are sent to the EndpointManager using the same names
+  %i[task_list tasks_in_progress?].each do |method|
+    describe ".#{method}" do
+      let(:fake_instance) { instance_double(described_class) }
+
+      before do
+        allow(described_class).to receive(:instance).and_return(fake_instance)
+        allow(fake_instance).to receive(method)
+      end
+
+      it "invokes instance##{method}" do
+        described_class.public_send(method)
+        expect(fake_instance).to have_received(method).once
+      end
+    end
+
+    describe "##{method}" do
+      let(:fake_endpoint) { instance_double(described_class::EndpointManager) }
+
+      before do
+        allow(described_class::EndpointManager).to receive(:new).and_return(fake_endpoint)
+        allow(fake_endpoint).to receive(method)
+      end
+
+      it "invokes EndpointManager##{method}" do
+        client.public_send(method)
+        expect(fake_endpoint).to have_received(method).once
+      end
+    end
+  end
 end
