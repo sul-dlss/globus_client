@@ -145,11 +145,11 @@ RSpec.describe GlobusClient do
       before do
         allow(described_class::Identity).to receive(:new).and_return(fake_identity)
         allow(described_class::Authenticator).to receive(:token).and_return('a_token', 'new_token')
-        allow(fake_identity).to receive(:valid?).and_raise(described_class::UnexpectedResponse::UnauthorizedError)
+        allow(fake_identity).to receive(:valid?).and_raise(described_class::UnauthorizedError)
       end
 
       it 'raises an error with Identity#valid?' do
-        expect { client.user_valid?('bogus') }.to raise_error(described_class::UnexpectedResponse::UnauthorizedError)
+        expect { client.user_valid?('bogus') }.to raise_error(described_class::UnauthorizedError)
       end
     end
   end

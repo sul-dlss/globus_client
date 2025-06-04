@@ -12,6 +12,7 @@ Zeitwerk::Loader.for_gem.setup
 
 # Client for interacting with the Globus API
 class GlobusClient # rubocop:disable Metrics/ClassLength
+  include Errors
   include Singleton
 
   class << self

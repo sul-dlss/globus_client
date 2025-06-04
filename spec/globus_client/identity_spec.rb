@@ -131,7 +131,7 @@ RSpec.describe GlobusClient::Identity do
     end
 
     it 'raises a ForbiddenError' do
-      expect { identity.get_identity(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::ForbiddenError)
+      expect { identity.get_identity(user_id) }.to raise_error(GlobusClient::ForbiddenError)
     end
   end
 
@@ -157,13 +157,13 @@ RSpec.describe GlobusClient::Identity do
 
     describe '#get_identity' do
       it 'raises an UnauthorizedError' do
-        expect { identity.get_identity(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        expect { identity.get_identity(user_id) }.to raise_error(GlobusClient::UnauthorizedError)
       end
     end
 
     describe '#valid?' do
       it 'raises an UnauthorizedError' do
-        expect { identity.valid?(user_id) }.to raise_error(GlobusClient::UnexpectedResponse::UnauthorizedError)
+        expect { identity.valid?(user_id) }.to raise_error(GlobusClient::UnauthorizedError)
       end
     end
   end
