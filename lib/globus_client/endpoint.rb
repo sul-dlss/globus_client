@@ -53,7 +53,7 @@ class GlobusClient
 
     # Delete the access rule https://docs.globus.org/api/transfer/acl/#delete_access_rule
     def delete_access_rule
-      raise(StandardError, "Access rule not found for #{path}") unless access_rule_id
+      raise GlobusClient::AccessRuleNotFound, "Access rule not found for #{path}" unless access_rule_id
 
       GlobusClient.instance.delete(
         base_url: GlobusClient.config.transfer_url,
@@ -79,7 +79,7 @@ class GlobusClient
         params: { path: }
       )
       true
-    rescue GlobusClient::UnexpectedResponse::ResourceNotFound
+    rescue GlobusClient::ResourceNotFound
       false
     end
 
@@ -168,7 +168,7 @@ class GlobusClient
     end
 
     def update_access_request(permissions:)
-      raise(StandardError, "Access rule not found for #{path}") unless access_rule_id
+      raise GlobusClient::AccessRuleNotFound, "Access rule not found for #{path}" unless access_rule_id
 
       GlobusClient.instance.put(
         base_url: GlobusClient.config.transfer_url,

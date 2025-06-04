@@ -112,7 +112,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises an EndpointError' do
-        expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::EndpointError)
+        expect { endpoint.mkdir }.to raise_error(GlobusClient::EndpointError)
       end
     end
 
@@ -123,7 +123,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises ServiceUnavailable' do
-        expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::ServiceUnavailable)
+        expect { endpoint.mkdir }.to raise_error(GlobusClient::ServiceUnavailable)
       end
     end
   end
@@ -260,7 +260,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises a BadRequestError' do
-        expect { endpoint.allow_writes }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
+        expect { endpoint.allow_writes }.to raise_error(GlobusClient::BadRequestError)
       end
     end
   end
@@ -293,7 +293,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises an exception' do
-        expect { endpoint.disallow_writes }.to raise_error(StandardError)
+        expect { endpoint.disallow_writes }.to raise_error(GlobusClient::AccessRuleNotFound)
       end
     end
 
@@ -370,7 +370,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises ServiceUnavailable' do
-        expect { endpoint.disallow_writes }.to raise_error(GlobusClient::UnexpectedResponse::ServiceUnavailable)
+        expect { endpoint.disallow_writes }.to raise_error(GlobusClient::ServiceUnavailable)
       end
     end
   end
@@ -448,7 +448,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'does raises an exception' do
-        expect { endpoint.delete_access_rule }.to raise_error(StandardError)
+        expect { endpoint.delete_access_rule }.to raise_error(GlobusClient::AccessRuleNotFound)
       end
     end
 
@@ -482,7 +482,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises ServiceUnavailable' do
-        expect { endpoint.delete_access_rule }.to raise_error(GlobusClient::UnexpectedResponse::ServiceUnavailable)
+        expect { endpoint.delete_access_rule }.to raise_error(GlobusClient::ServiceUnavailable)
       end
     end
   end
@@ -502,7 +502,7 @@ RSpec.describe GlobusClient::Endpoint do
     end
 
     it 'raises a BadRequestError' do
-      expect { endpoint.mkdir }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
+      expect { endpoint.mkdir }.to raise_error(GlobusClient::BadRequestError)
     end
   end
 
@@ -518,7 +518,7 @@ RSpec.describe GlobusClient::Endpoint do
     end
 
     it 'raises an UnexpectedResponse' do
-      expect { endpoint.mkdir }.to raise_error(StandardError)
+      expect { endpoint.mkdir }.to raise_error(GlobusClient::InternalServerError)
     end
   end
 
@@ -830,7 +830,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises an UnexpectedResponse' do
-        expect { endpoint.list_files }.to raise_error(GlobusClient::UnexpectedResponse::ResourceNotFound)
+        expect { endpoint.list_files }.to raise_error(GlobusClient::ResourceNotFound)
       end
     end
 
@@ -1025,7 +1025,7 @@ RSpec.describe GlobusClient::Endpoint do
       end
 
       it 'raises an exception' do
-        expect { endpoint.rename(new_path: '/move/here') }.to raise_error(GlobusClient::UnexpectedResponse::BadRequestError)
+        expect { endpoint.rename(new_path: '/move/here') }.to raise_error(GlobusClient::BadRequestError)
       end
     end
   end
