@@ -22,7 +22,7 @@ Layout/LineLength:
   Max: 150
 
 # Naming
-Naming/PredicateName:
+Naming/PredicatePrefix:
   ForbiddenPrefixes:
     - is_
     - have_

@@ -88,7 +88,7 @@ class GlobusClient
     attr_reader :path, :user_id, :notify_email
 
     def globus_identity_id
-      Identity.new.get_identity_id(user_id)
+      @globus_identity_id ||= Identity.new.get_identity_id(user_id)
     end
 
     # Builds up a path from a list of path elements. E.g., input would look like:
@@ -187,7 +187,7 @@ class GlobusClient
         content_type: 'application/json'
       )
 
-      response.fetch('DATA').find { |acl| acl['path'] == full_path }
+      response.fetch('DATA').find { |acl| acl['path'] == full_path && acl['principal'] == globus_identity_id }
     end
 
     def access_rule_id
