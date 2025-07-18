@@ -11,6 +11,7 @@ RSpec.describe GlobusClient::Endpoint do
       transfer_url:,
       uploads_directory:
     )
+    allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
   end
 
   let(:transfer_endpoint_id) { 'NOT_A_REAL_ENDPOINT' }
@@ -20,6 +21,8 @@ RSpec.describe GlobusClient::Endpoint do
   let(:path) { "example/work#{work_id}/version#{work_version}" }
   let(:work_id) { '123' }
   let(:work_version) { '1' }
+  let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: identity_id) }
+  let(:identity_id) { 'ae3e3f70-4065-408b-9cd8-39dc01b07d29' }
 
   describe '#mkdir' do
     let(:mkdir_response) do
@@ -129,12 +132,6 @@ RSpec.describe GlobusClient::Endpoint do
   end
 
   describe '#allow_writes' do
-    let(:fake_identity) { instance_double(GlobusClient::Identity, get_identity_id: 'example') }
-
-    before do
-      allow(GlobusClient::Identity).to receive(:new).and_return(fake_identity)
-    end
-
     context 'when no access rules are present for a directory' do
       let(:access_response) do
         {
@@ -151,13 +148,26 @@ RSpec.describe GlobusClient::Endpoint do
           DATA_TYPE: 'access_list',
           endpoint: transfer_endpoint_id,
           DATA: [
+            # Different path, same user.
             {
               DATA_TYPE: 'access',
               create_time: '2022-11-22T16:08:24+00:00',
               id: 'e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080',
               path: '/foo/bar/',
               permissions: 'rw',
-              principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+              principal: identity_id,
+              principal_type: 'identity',
+              role_id: nil,
+              role_type: nil
+            },
+            # Same path, but different user.
+            {
+              DATA_TYPE: 'access',
+              create_time: '2022-11-22T16:08:24+00:00',
+              id: 'e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080',
+              path: "/uploads/#{path}/",
+              permissions: 'rw',
+              principal: 'a-different-user-uuid',
               principal_type: 'identity',
               role_id: nil,
               role_type: nil
@@ -199,7 +209,7 @@ RSpec.describe GlobusClient::Endpoint do
               id: access_rule_id,
               path: "/uploads/#{path}/",
               permissions: 'rw',
-              principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+              principal: identity_id,
               principal_type: 'identity',
               role_id: nil,
               role_type: nil
@@ -243,7 +253,7 @@ RSpec.describe GlobusClient::Endpoint do
               id: 'e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080',
               path: '/foo/bar/',
               permissions: 'rw',
-              principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+              principal: identity_id,
               principal_type: 'identity',
               role_id: nil,
               role_type: nil
@@ -278,7 +288,7 @@ RSpec.describe GlobusClient::Endpoint do
               id: 'e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080',
               path: '/foo/bar/',
               permissions: 'rw',
-              principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+              principal: identity_id,
               principal_type: 'identity',
               role_id: nil,
               role_type: nil
@@ -318,7 +328,7 @@ RSpec.describe GlobusClient::Endpoint do
               id: access_rule_id,
               path: "/uploads/#{path}/",
               permissions: 'rw',
-              principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+              principal: identity_id,
               principal_type: 'identity',
               role_id: nil,
               role_type: nil
@@ -352,7 +362,7 @@ RSpec.describe GlobusClient::Endpoint do
               id: access_rule_id,
               path: "/uploads/#{path}/",
               permissions: 'rw',
-              principal: 'ae3e3f70-4065-408b-9cd8-39dc01b07d29',
+              principal: identity_id,
               principal_type: 'identity',
               role_id: nil,
               role_type: nil
