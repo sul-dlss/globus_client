@@ -128,18 +128,18 @@ class GlobusClient
       response['DATA']
         .select { |object| object['type'] == 'file' }
         .each do |file|
-        return true if return_presence
+          return true if return_presence
 
-        files << FileInfo.new("#{filepath}#{file['name']}", file['size'])
+          files << FileInfo.new("#{filepath}#{file['name']}", file['size'])
       end
 
       response['DATA']
         .select { |object| object['type'] == 'dir' }
         .each do |dir|
-        # NOTE: This allows the recursive method to short-circuit iff ls_path
-        #       returns true, which only happens when return_presence is true
-        #       and the first file is found in the ls operation.
-        return true if ls_path("#{filepath}#{dir['name']}/", files, return_presence:) == true
+          # NOTE: This allows the recursive method to short-circuit iff ls_path
+          #       returns true, which only happens when return_presence is true
+          #       and the first file is found in the ls operation.
+          return true if ls_path("#{filepath}#{dir['name']}/", files, return_presence:) == true
       end
 
       return false if return_presence
