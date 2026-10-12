@@ -5,13 +5,18 @@ plugins:
   - rubocop-rspec
 
 AllCops:
-  TargetRubyVersion: 3.1
+  TargetRubyVersion: 4.0
   DisplayCopNames: true
   SuggestExtensions: false
   NewCops: disable
   Exclude:
     - bin/**
     - vendor/bundle/**/*
+
+# Development uses Ruby 4, but the gem still supports Ruby 3.1 consumers.
+Gemspec/RequiredRubyVersion:
+  Exclude:
+    - globus_client.gemspec
 
 # Per team developer playbook
 RSpec/MultipleMemoizedHelpers:
