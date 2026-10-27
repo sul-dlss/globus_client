@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    globus_client (0.19.0)
+    globus_client (0.19.1)
       activesupport (>= 4.2)
       faraday
       faraday-retry
