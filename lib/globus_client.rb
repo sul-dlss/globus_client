@@ -50,7 +50,7 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     # rubocop:enable Metrics/ParameterLists
 
     delegate :config, :disallow_writes, :allow_writes, :delete_access_rule, :file_count, :list_files, :mkdir, :rename, :total_size,
-             :user_valid?, :get_filenames, :has_files?, :exists?, :task_list, :tasks_in_progress?,
+             :user_valid?, :get_filenames, :has_files?, :exists?, :writable?, :task_list, :tasks_in_progress?,
              :delete, :get, :post, :put, to: :instance
 
     def default_transfer_url
@@ -209,6 +209,12 @@ class GlobusClient # rubocop:disable Metrics/ClassLength
     Endpoint
       .new(...)
       .exists?
+  end
+
+  def writable?(...)
+    Endpoint
+      .new(...)
+      .writable?
   end
 
   def user_valid?(...)

@@ -1004,6 +1004,57 @@ RSpec.describe GlobusClient::Endpoint do
     end
   end
 
+  describe '#writable?' do
+    let(:access_list_response) do
+      {
+        DATA_TYPE: 'access_list',
+        endpoint: transfer_endpoint_id,
+        DATA: [
+          {
+            DATA_TYPE: 'access',
+            create_time: '2022-11-22T16:08:24+00:00',
+            id: 'e3ee1ec2-6a7f-11ed-b0bd-bfe7e7197080',
+            path: access_rule_path,
+            permissions:,
+            principal: identity_id,
+            principal_type: 'identity',
+            role_id: nil,
+            role_type: nil
+          }
+        ]
+      }
+    end
+    let(:access_rule_path) { "/uploads/#{path}/" }
+    let(:permissions) { 'rw' }
+
+    before do
+      stub_request(:get, "#{transfer_url}/v0.10/endpoint/#{transfer_endpoint_id}/access_list")
+        .to_return(status: 200, body: access_list_response.to_json)
+    end
+
+    context 'when the user has read/write access to the directory' do
+      it 'returns true' do
+        expect(endpoint.writable?).to be true
+      end
+    end
+
+    context 'when the user has read-only access to the directory' do
+      let(:permissions) { 'r' }
+
+      it 'returns false' do
+        expect(endpoint.writable?).to be false
+      end
+    end
+
+    context 'when the user has no access rule for the directory' do
+      let(:access_rule_path) { '/foo/bar/' }
+
+      it 'returns false' do
+        expect(endpoint.writable?).to be false
+      end
+    end
+  end
+
   describe '#rename' do
     context 'when successful' do
       let(:rename_response) do

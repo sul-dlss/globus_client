@@ -83,6 +83,12 @@ class GlobusClient
       false
     end
 
+    # @returns true if the user has an access rule with read/write permissions for the directory
+    # See https://docs.globus.org/api/transfer/acl/#get_list_of_access_rules
+    def writable?
+      access_rule&.fetch('permissions') == 'rw'
+    end
+
     private
 
     attr_reader :path, :user_id, :notify_email
